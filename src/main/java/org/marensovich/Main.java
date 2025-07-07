@@ -25,10 +25,8 @@ public class Main {
 
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(new TelegramBot(databaseManager));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+        } catch (UnsupportedEncodingException | TelegramApiException e) {
+            throw new RuntimeException("Ошибка запуска бота", e);
         }
 
     }
