@@ -20,9 +20,29 @@ import java.nio.charset.StandardCharsets;
 
 public class TelegramBot extends TelegramLongPollingBot {
 
+    DatabaseManager databaseManager;
+
+    public TelegramBot(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
+        if (update.hasMessage() || update.hasCallbackQuery()){
+            if (update.hasMessage()){
+                if (!databaseManager.checkAllUsersExists(update.getMessage().getFrom().getId())){
+                    databaseManager.addAllUser(update.getMessage().getFrom().getId());
+                }
+            }
+            if (update.hasCallbackQuery()){
+                if (!databaseManager.checkAllUsersExists(update.getCallbackQuery().getFrom().getId())){
+                    databaseManager.addAllUser(update.getCallbackQuery().getFrom().getId());
+                }
+            }
+        }
+
+
+
         if (update.hasMessage()) {
             if (update.getMessage().hasLocation()) {
                 SendMessage sendMessage = new SendMessage();
