@@ -8,7 +8,6 @@ public class YandexMapsURL {
 
     private static String BASE_URL = "https://static-maps.yandex.ru/v1";
 
-    // Параметры теперь все начинаются с &
     private static final String LL = "&ll=";
     private static final String SPN = "&spn=";
     private static final String BBOX = "&bbox=";

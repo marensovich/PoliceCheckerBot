@@ -1,5 +1,6 @@
 package org.marensovich.Bot;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.YandexMapAPI.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -8,21 +9,14 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 public class TelegramBot extends TelegramLongPollingBot {
 
@@ -215,11 +209,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
     @Override
     public String getBotUsername() {
-        return "Police Checker";
+        return Dotenv.load().get("TELEGRAM_BOT_USERNAME");
     }
 
     @Override
     public String getBotToken() {
-        return "8109756623:AAFEmMow2NHlw_yGwHYHBbp9drujC81ks_s";
+        return Dotenv.load().get("TELEGRAM_BOT_TOKEN");
     }
 }
