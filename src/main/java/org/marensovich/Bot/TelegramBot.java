@@ -40,24 +40,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
-
-
-
         if (update.hasMessage()) {
-            if (update.getMessage().hasLocation()) {
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(update.getMessage().getChatId().toString());
-                sendMessage.setText(update.getMessage().getLocation().getLatitude() + "," + update.getMessage().getLocation().getLongitude() + "\n\n"
-                        + update.getMessage().getLocation().getHorizontalAccuracy() + "\n"
-                        + update.getMessage().getLocation().getHeading() + "\n"
-                        + update.getMessage().getLocation().getLivePeriod() + "\n"
-                        + update.getMessage().getLocation().getProximityAlertRadius());
-                try {
-                    execute(sendMessage);
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
-                }
-            }
             if (update.getMessage().getText().startsWith("/") &&
                     !update.getMessage().getText().equals("/start") &&
                     !update.getMessage().getText().equals("/help") &&
@@ -72,24 +55,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
             if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/test")) {
-                //InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
-                //List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-                //List<InlineKeyboardButton> row1 = new ArrayList<>();
-                //row1.add(InlineKeyboardButton.builder()
-                //        .text("55.389249, 36.946066")
-                //        .callbackData("callback_post1")
-                //        .build());
-                //rows.add(row1);
-                //inlineKeyboard.setKeyboard(rows);
-
-                //SendMessage sendMessage = new SendMessage();
-                //sendMessage.setChatId(update.getMessage().getChatId().toString());
-                //sendMessage.setText("Посты рядом:");
-                //sendMessage.setReplyMarkup(inlineKeyboard);
-
                 try {
-                    // 1. Генерация URL
                     YandexMapsURL mapsURL = new YandexMapsURL();
                     String url_string = mapsURL.generateURL(
                             36.946066f,55.389249f,
@@ -101,28 +67,20 @@ public class TelegramBot extends TelegramLongPollingBot {
                             null, YandexMapTheme.Dark, YandexMapTypes.transit
                     );
 
-                    System.out.println("[DEBUG] Generated URL: " + url_string);
-
-                    // 2. Создание соединения
                     URL url = new URL(url_string);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestProperty("User-Agent", "Mozilla/5.0");
                     connection.setRequestProperty("Accept", "image/png");
 
-                    // 3. Получение ответа
                     int responseCode = connection.getResponseCode();
                     System.out.println("[DEBUG] HTTP Response Code: " + responseCode);
 
-                    // 4. Обработка ошибок
                     if (responseCode != HttpURLConnection.HTTP_OK) {
                         String errorMessage;
                         try (InputStream errorStream = connection.getErrorStream()) {
                             if (errorStream != null) {
-                                // Чтение XML/текста ошибки от Яндекса
                                 errorMessage = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
                                 System.out.println("[ERROR] Yandex API Error Response:\n" + errorMessage);
-
-                                // Парсинг XML ошибки (если в XML формате)
                                 if (errorMessage.contains("<error>")) {
                                     errorMessage = errorMessage.split("<message>")[1].split("</message>")[0];
                                 }
@@ -131,33 +89,20 @@ public class TelegramBot extends TelegramLongPollingBot {
                             }
                         }
 
-                        String userFriendlyMessage;
-                        switch (responseCode) {
-                            case 400:
-                                userFriendlyMessage = "Ошибка в параметрах запроса: " + errorMessage;
-                                break;
-                            case 403:
-                                userFriendlyMessage = "Проблема с API-ключом: " + errorMessage;
-                                break;
-                            case 429:
-                                userFriendlyMessage = "Слишком много запросов. Попробуйте позже.";
-                                break;
-                            default:
-                                userFriendlyMessage = "Ошибка сервера (код " + responseCode + "): " + errorMessage;
-                        }
-
+                        String userFriendlyMessage = switch (responseCode) {
+                            case 400 -> "Ошибка в параметрах запроса: " + errorMessage;
+                            case 403 -> "Проблема с API-ключом: " + errorMessage;
+                            case 429 -> "Слишком много запросов. Попробуйте позже.";
+                            default -> "Ошибка сервера (код " + responseCode + "): " + errorMessage;
+                        };
                         throw new IOException(userFriendlyMessage);
                     }
 
-                    // 5. Чтение успешного ответа
                     try (InputStream inputStream = connection.getInputStream()) {
                         BufferedImage image = ImageIO.read(inputStream);
-
                         if (image == null) {
                             throw new IOException("Не удалось прочитать изображение карты");
                         }
-
-                        // 6. Отправка изображения в Telegram
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
                         ImageIO.write(image, "png", os);
                         InputStream is = new ByteArrayInputStream(os.toByteArray());
@@ -171,7 +116,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                     System.err.println("[FATAL] Error processing map request:");
                     e.printStackTrace();
 
-                    // Отправка сообщения об ошибке пользователю
                     SendMessage errorMsg = new SendMessage();
                     errorMsg.setChatId(update.getMessage().getChatId().toString());
                     errorMsg.setText("❌ Ошибка при получении карты:\n" + e.getMessage());
@@ -192,11 +136,10 @@ public class TelegramBot extends TelegramLongPollingBot {
                         try {
                             execute(sendLocation);
 
-                            // Отправляем ответ на callback (убирает "часики" у кнопки)
                             AnswerCallbackQuery answer = new AnswerCallbackQuery();
                             answer.setCallbackQueryId(update.getCallbackQuery().getId());
-                            execute(answer);
 
+                            execute(answer);
                         } catch (TelegramApiException e) {
                             throw new RuntimeException(e);
                         }
