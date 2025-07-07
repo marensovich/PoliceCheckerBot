@@ -2,22 +2,10 @@ package org.marensovich.Bot;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.CommandManager;
-import org.marensovich.Bot.YandexMapAPI.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 public class TelegramBot extends TelegramLongPollingBot {
 
@@ -55,33 +43,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (update.hasMessage()) {
             if (update.getMessage().getText().startsWith("/")){
                 if (!commandManager.executeCommand(update)) {
+                    String text = "Команда не распознана, проверьте правильность написания команды. \n\nКоманды с доп. параметрами указаны отдельной графой в информации. Подробнее в /help.";
                     SendMessage message = new SendMessage();
                     message.setChatId(update.getMessage().getChatId().toString());
-                    message.setText("Команда не распознана. Используйте /help для списка команд.");
+                    message.setText(text);
                     try {
                         execute(message);
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
-                    }
-                }
-            }
-
-            if (update.hasCallbackQuery()) {
-                String callbackData = update.getCallbackQuery().getData();
-                if (callbackData.startsWith("callback_post")) {
-                    SendLocation sendLocation = new SendLocation();
-                    sendLocation.setLatitude(55.389249);
-                    sendLocation.setLongitude(36.946066);
-                    sendLocation.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
-                    try {
-                        execute(sendLocation);
-
-                        AnswerCallbackQuery answer = new AnswerCallbackQuery();
-                        answer.setCallbackQueryId(update.getCallbackQuery().getId());
-
-                        execute(answer);
-                    } catch (TelegramApiException e) {
-                        throw new RuntimeException(e);
                     }
                 }
             }

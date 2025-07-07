@@ -28,14 +28,14 @@ public class CommandManager {
     }
 
     public boolean executeCommand(Update update) {
-        if (!update.hasMessage() || !update.getMessage().hasText()) {
-            return false;
-        }
         String text = update.getMessage().getText();
-        Command command = commands.get(text.split(" ")[0]);
-        if (command != null) {
-            command.execute(update);
-            return true;
+        if (text.trim().equals("/start") || text.trim().equals("/help") || text.trim().equals("/settings"))
+        {
+            Command command = commands.get(text);
+            if (command != null) {
+                command.execute(update);
+                return true;
+            }
         }
         return false;
     }
