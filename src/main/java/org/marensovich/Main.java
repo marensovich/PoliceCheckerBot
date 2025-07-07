@@ -1,5 +1,6 @@
 package org.marensovich;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,7 +14,7 @@ public class Main {
         try {
             System.setOut(new PrintStream(System.out, true, "UTF-8"));
 
-            System.out.println("Police Checker Bot successfuly started!");
+            System.out.println(Dotenv.load().get("TELEGRAM_BOT_USERNAME") + " Bot successfuly started!");
 
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(new TelegramBot());
