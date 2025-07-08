@@ -17,7 +17,7 @@ public class CheckSubscriptionHandler implements TelegramCallbackHandler {
 
     @Override
     public void handle(Update update) {
-        String channelId = Dotenv.load().get("TELEGRAM_CHANNEL_ID");
+        String channelId = Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_ID");
         Long userId = update.getCallbackQuery().getFrom().getId();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
 

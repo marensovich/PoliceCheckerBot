@@ -28,7 +28,6 @@ public class RegisterCommand implements Command {
     @Override
     public void execute(Update update) {
 
-
         Long chatId = update.getMessage().getChatId();
         Long userId = update.getMessage().getFrom().getId();
 
