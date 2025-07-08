@@ -19,6 +19,7 @@ public class CommandManager {
         register(new TestCommand());
         register(new SettingsCommand());
         register(new RegisterCommand());
+        register(new SubscribeCommand());
     }
 
     private void register(Command command) {
