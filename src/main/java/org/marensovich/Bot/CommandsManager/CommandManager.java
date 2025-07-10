@@ -28,7 +28,12 @@ public class CommandManager {
 
     public boolean executeCommand(Update update) {
         String text = update.getMessage().getText();
-        if (text.trim().equals("/start") || text.trim().equals("/help") || text.trim().equals("/settings") || text.trim().equals("/reg") || text.trim().equals("/test"))
+        if (text.trim().equals("/start") ||
+            text.trim().equals("/help") ||
+            text.trim().equals("/settings") ||
+            text.trim().equals("/reg") ||
+            text.trim().equals("/test") ||
+            text.trim().equals("/subscribe"))
         {
             Command command = commands.get(text);
             if (command != null) {
