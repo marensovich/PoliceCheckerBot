@@ -1,6 +1,7 @@
 package org.marensovich.Bot.CommandsManager;
 
 import org.marensovich.Bot.CommandsManager.Commands.*;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.GiveSubcribeCommand;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
@@ -20,6 +21,9 @@ public class CommandManager {
         register(new SettingsCommand());
         register(new RegisterCommand());
         register(new SubscribeCommand());
+        register(new GetIDCommand());
+
+        register(new GiveSubcribeCommand());
     }
 
     private void register(Command command) {
@@ -28,18 +32,10 @@ public class CommandManager {
 
     public boolean executeCommand(Update update) {
         String text = update.getMessage().getText();
-        if (text.trim().equals("/start") ||
-            text.trim().equals("/help") ||
-            text.trim().equals("/settings") ||
-            text.trim().equals("/reg") ||
-            text.trim().equals("/test") ||
-            text.trim().equals("/subscribe"))
-        {
-            Command command = commands.get(text);
-            if (command != null) {
-                command.execute(update);
-                return true;
-            }
+        Command command = commands.get(text);
+        if (command != null) {
+            command.execute(update);
+            return true;
         }
         return false;
     }
