@@ -12,7 +12,6 @@ public class SubscribeCommand implements Command {
         return "/subscribe";
     }
 
-
     @Override
     public void execute(Update update) {
         SendMessage sendMessage = new SendMessage();
