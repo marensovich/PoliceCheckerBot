@@ -206,6 +206,23 @@ public class DatabaseManager {
         }
     }
 
+    public boolean checkUserIsAdmin(long userId) {
+        String SQL = "SELECT is_admin FROM Users WHERE user_id = ? LIMIT 1";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("is_admin");
+                } else {
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при проверке статуса администратора: " + e.getMessage());
+            return false;
+        }
+    }
 
     public void addSub(long userid, SubscribeTypes type) {
         String SQL_AddSub = "INSERT INTO Subscribes (user_id, `type`, exp_at) VALUES (?, ?, CURRENT_TIMESTAMP + INTERVAL 30 DAY)";

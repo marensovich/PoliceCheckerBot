@@ -17,7 +17,6 @@ public class UserInfo {
     public String subscribeType; // "none", "vip", "premium"
     public Timestamp subscriptionExpiration;
 
-
     public long getUserId() {
         return userId;
     }
@@ -97,6 +96,4 @@ public class UserInfo {
     public void setSubscriptionExpiration(java.sql.Timestamp subscriptionExpiration) {
         this.subscriptionExpiration = subscriptionExpiration;
     }
-
-
 }

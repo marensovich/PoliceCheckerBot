@@ -27,9 +27,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         return instance;
     }
 
-    public static DatabaseManager getDatabaseManager() {
-        return instance.databaseManager;
-    }
+    public static DatabaseManager getDatabaseManager() { return instance.databaseManager; }
 
     @Override
     public void onUpdateReceived(Update update) {
