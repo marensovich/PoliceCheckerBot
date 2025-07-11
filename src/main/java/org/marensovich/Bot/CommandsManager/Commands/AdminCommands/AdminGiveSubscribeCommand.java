@@ -82,7 +82,7 @@ public class AdminGiveSubscribeCommand implements Command {
             return;
         }
 
-        DatabaseManager databaseManager = new DatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
         databaseManager.addSub(target_id, subscribeType);
 
         Timestamp expAt = databaseManager.getExpAtForUser(target_id);

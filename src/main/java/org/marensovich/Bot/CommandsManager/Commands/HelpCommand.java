@@ -20,7 +20,7 @@ public class HelpCommand implements Command {
 
     @Override
     public void execute(Update update) {
-        DatabaseManager databaseManager = new DatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
         if (databaseManager.checkUserIsAdmin(update.getMessage().getFrom().getId())) {
             String helpMessage = "<b>Помощь /help</b>\n\n" +
                     "Добро пожаловать! Этот бот предназначен для удобного отслеживания информации о постах ДПС\n" +

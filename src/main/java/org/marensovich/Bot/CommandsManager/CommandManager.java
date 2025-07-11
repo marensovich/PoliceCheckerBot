@@ -52,7 +52,7 @@ public class CommandManager {
 
         if (adminCommands.containsKey(commandKey)) {
             Long userId = update.getMessage().getFrom().getId();
-            DatabaseManager databaseManager = new DatabaseManager();
+            DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
             if (!databaseManager.checkUserIsAdmin(userId)) {
                 SendMessage sendMessage = new SendMessage();
                 sendMessage.setText("У вас нету прав доступа к этой команде!");

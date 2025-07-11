@@ -64,7 +64,7 @@ public class AdminRemoveSubscribeCommand implements Command {
             return;
         }
 
-        DatabaseManager databaseManager = new DatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
         databaseManager.resetSub(target_id);
 
         String notif = "*\uD83D\uDEAB Ваша подписка была отменена или досрочно завершена администратором.*\n" +

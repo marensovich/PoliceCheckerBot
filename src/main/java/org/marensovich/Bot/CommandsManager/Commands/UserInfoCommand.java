@@ -19,7 +19,7 @@ public class UserInfoCommand implements Command {
         Long chatId = update.getMessage().getChatId();
         Long userId = update.getMessage().getFrom().getId();
 
-        DatabaseManager databaseManager = new DatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
 
         UserInfo userData;
         userData = databaseManager.getUserInfo(userId);
