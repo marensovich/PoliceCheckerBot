@@ -30,6 +30,7 @@ public class CommandManager {
         register(new SubscribeCommand());
         register(new GetIDCommand());
         register(new UserInfoCommand());
+        register(new AddPostCommand());
 
         registerAdmin(new AdminGiveSubscribeCommand());
         registerAdmin(new AdminRemoveSubscribeCommand());

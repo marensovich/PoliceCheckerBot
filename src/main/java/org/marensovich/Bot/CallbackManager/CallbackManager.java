@@ -34,7 +34,6 @@ public class CallbackManager {
             handler.handle(update);
             return true;
         }
-
         return false;
     }
 }
