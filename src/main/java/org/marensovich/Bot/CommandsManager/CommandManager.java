@@ -46,16 +46,30 @@ public class CommandManager {
 
     public boolean executeCommand(Update update) {
         String messageText = update.getMessage().getText().trim();
-
         String[] parts = messageText.split(" ");
         String commandKey = parts[0];
 
+        Long userId = update.getMessage().getFrom().getId();
+        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+
+        boolean isRegistered = databaseManager.checkUsersExists(userId);
+
+        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help")) {
+            SendMessage msg = new SendMessage();
+            msg.setChatId(update.getMessage().getChatId());
+            msg.setText("Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
+            try {
+                TelegramBot.getInstance().execute(msg);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        }
+
         if (adminCommands.containsKey(commandKey)) {
-            Long userId = update.getMessage().getFrom().getId();
-            DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
             if (!databaseManager.checkUserIsAdmin(userId)) {
                 SendMessage sendMessage = new SendMessage();
-                sendMessage.setText("У вас нету прав доступа к этой команде!");
+                sendMessage.setText("У вас нет прав доступа к этой команде!");
                 sendMessage.setChatId(update.getMessage().getChatId());
                 try {
                     TelegramBot.getInstance().execute(sendMessage);
@@ -71,6 +85,7 @@ public class CommandManager {
             }
             return false;
         }
+
         Command command = commands.get(commandKey);
         if (command != null) {
             command.execute(update);

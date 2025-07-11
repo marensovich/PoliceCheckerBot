@@ -21,6 +21,44 @@ public class HelpCommand implements Command {
     @Override
     public void execute(Update update) {
         DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+
+        boolean isRegistered = databaseManager.checkUsersExists(update.getMessage().getFrom().getId());
+
+        if (!isRegistered) {
+            String helpMessage = "<b>Помощь /help</b>\n\n" +
+                    "Добро пожаловать! Этот бот предназначен для удобного отслеживания информации о постах ДПС\n" +
+                    "Для расширения списка доступных команд - зарегистрируйтесь через /reg" +
+                    "Ниже представлены основные команды:\n\n" +
+                    "<b>Основные команды:</b>\n" +
+                    "• <code>/start</code> — начать работу с ботом\n" +
+                    "• <code>/help</code> — вывести это сообщение\n" +
+                    "• <code>/reg</code> — зарегистрироваться в системе\n" +
+                    "Если у вас есть вопросы, обращайтесь к администратору - @marensovich";
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(update.getMessage().getChatId().toString());
+            sendMessage.setParseMode("HTML");
+            sendMessage.setText(helpMessage);
+
+            InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+
+            List<InlineKeyboardButton> checkRow = new ArrayList<>();
+            InlineKeyboardButton checkButton = new InlineKeyboardButton();
+            checkButton.setText("✔ Написать");
+            checkButton.setUrl("https://t.me/marensovich");
+            checkRow.add(checkButton);
+            keyboard.add(checkRow);
+
+            keyboardMarkup.setKeyboard(keyboard);
+            sendMessage.setReplyMarkup(keyboardMarkup);
+            try {
+                TelegramBot.getInstance().execute(sendMessage);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
         if (databaseManager.checkUserIsAdmin(update.getMessage().getFrom().getId())) {
             String helpMessage = "<b>Помощь /help</b>\n\n" +
                     "Добро пожаловать! Этот бот предназначен для удобного отслеживания информации о постах ДПС\n" +

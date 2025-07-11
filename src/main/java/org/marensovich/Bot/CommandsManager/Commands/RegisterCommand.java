@@ -95,7 +95,7 @@ public class RegisterCommand implements Command {
                 sendSuccessMessage(chatId, "ℹ️ Вы уже зарегистрированы!");
             } else {
                 dbManager.addUser(userId);
-                sendSuccessMessage(chatId, "✅ Регистрация прошла успешно!\nТеперь вам открыты часть функций бота, подробнее в /subscribe.");
+                sendSuccessMessage(chatId, "✅ Регистрация прошла успешно!\nТеперь вам открыты часть функций бота, подробнее в /help.");
             }
         } catch (Exception e) {
             sendErrorMessage(chatId, "⚠️ Ошибка при регистрации. Попробуйте позже.");
