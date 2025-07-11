@@ -1,9 +1,9 @@
 package org.marensovich.Bot.CommandsManager;
 
 import org.marensovich.Bot.CommandsManager.Commands.*;
-import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.GiveSubscribeCommand;
-import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.RemoveSubscribeCommand;
-import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.UserInfoCommand;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminGiveSubscribeCommand;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminRemoveSubscribeCommand;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminUserInfoCommand;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -29,10 +29,11 @@ public class CommandManager {
         register(new RegisterCommand());
         register(new SubscribeCommand());
         register(new GetIDCommand());
+        register(new UserInfoCommand());
 
-        registerAdmin(new GiveSubscribeCommand());
-        registerAdmin(new RemoveSubscribeCommand());
-        registerAdmin(new UserInfoCommand());
+        registerAdmin(new AdminGiveSubscribeCommand());
+        registerAdmin(new AdminRemoveSubscribeCommand());
+        registerAdmin(new AdminUserInfoCommand());
     }
 
     private void register(Command command) {

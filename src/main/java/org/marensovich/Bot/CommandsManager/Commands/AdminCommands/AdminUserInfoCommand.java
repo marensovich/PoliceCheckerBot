@@ -8,10 +8,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class UserInfoCommand implements Command {
+public class AdminUserInfoCommand implements Command {
     @Override
     public String getName() {
-        return "/userinfo";
+        return "/auserinfo";
     }
 
     @Override
@@ -71,19 +71,18 @@ public class UserInfoCommand implements Command {
             }
         }
 
-        // Формируем сообщение с HTML-разметкой
         String message = String.format(
                 "<b>📋 Информация о пользователе:</b>\n" +
-                        "🆔 ID: %d\n" +
-                        "🌐 Язык: %s\n" +
-                        "🎨 Тема: %s\n" +
-                        "🗺️ Тип карты: %s\n" +
-                        "🛡️ Админ: %s\n" +
-                        "🔔 Подписка: %s\n" +
-                        "🗺️ Генерация карты: %d\n" +
-                        "📝 Зарегистрирован: %s\n" +
-                        "💳 Тип подписки: %s\n" +
-                        "⏰ Истекает подписка: %s",
+                        "<b> 🆔 ID: </b>%d\n" +
+                        "<b> 🌐 Язык: </b>%s\n" +
+                        "<b> 🎨 Тема: </b>%s\n" +
+                        "<b> 🗺️ Тип карты: </b>%s\n" +
+                        "<b> 🛡️ Админ: </b>%s\n" +
+                        "<b> 🔔 Подписка: </b>%s\n" +
+                        "<b> 🗺️ Генерация карты: </b>%d\n" +
+                        "<b> 📝 Зарегистрирован: </b>%s\n" +
+                        "<b> 💳 Тип подписки: </b>%s\n" +
+                        "<b> ⏰ Истекает подписка: </b>%s",
                 userData.getUserId(),
                 userData.getYandexLang(),
                 userData.getYandexTheme(),

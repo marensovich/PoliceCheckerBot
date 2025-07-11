@@ -12,10 +12,10 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-public class GiveSubscribeCommand implements Command {
+public class AdminGiveSubscribeCommand implements Command {
     @Override
     public String getName() {
-        return "/givesub";
+        return "/agivesub";
     }
 
     @Override
