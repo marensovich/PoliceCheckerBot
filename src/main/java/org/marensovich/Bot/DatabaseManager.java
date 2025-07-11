@@ -2,6 +2,7 @@ package org.marensovich.Bot;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.Data.SubscribeTypes;
+import org.marensovich.Bot.Data.UserInfo;
 
 import java.sql.*;
 import java.time.Instant;
@@ -170,6 +171,41 @@ public class DatabaseManager {
         }
     }
 
+    public UserInfo getUserInfo(long userId) {
+        String sql = "SELECT " +
+                "u.user_id, u.yandex_lang, u.yandex_theme, u.yandex_maptype, u.is_admin, u.subscribe, u.gen_map, u.registration_time, " +
+                "s.type AS subscribe_type, s.exp_at AS subscription_expiration " +
+                "FROM Users u " +
+                "LEFT JOIN Subscribes s ON u.user_id = s.user_id " +
+                "WHERE u.user_id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    UserInfo userInfo = new UserInfo();
+                    userInfo.userId = rs.getLong("user_id");
+                    userInfo.yandexLang = rs.getString("yandex_lang");
+                    userInfo.yandexTheme = rs.getString("yandex_theme");
+                    userInfo.yandexMaptype = rs.getString("yandex_maptype");
+                    userInfo.isAdmin = rs.getBoolean("is_admin");
+                    userInfo.subscribe = rs.getString("subscribe");
+                    userInfo.genMap = rs.getInt("gen_map");
+                    userInfo.registrationTime = rs.getTimestamp("registration_time");
+                    userInfo.subscribeType = rs.getString("subscribe_type");
+                    userInfo.subscriptionExpiration = rs.getTimestamp("subscription_expiration");
+                    return userInfo;
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     public void addSub(long userid, SubscribeTypes type) {
         String SQL_AddSub = "INSERT INTO Subscribes (user_id, `type`, exp_at) VALUES (?, ?, CURRENT_TIMESTAMP + INTERVAL 30 DAY)";
@@ -205,6 +241,43 @@ public class DatabaseManager {
             throw new RuntimeException("Не удалось выдать подписку пользователю " + userid, e);
         }
     }
+
+    public void resetSub(long userid) {
+        String SQL_UpdateUser = "UPDATE Users SET subscribe = ? WHERE user_id = ?";
+        String SQL_DeleteSubs = "DELETE FROM Subscribes WHERE user_id = ?";
+
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmtUpdateUser = conn.prepareStatement(SQL_UpdateUser);
+                 PreparedStatement stmtDeleteSubs = conn.prepareStatement(SQL_DeleteSubs)) {
+
+                stmtUpdateUser.setString(1, SubscribeTypes.None.getType());
+                stmtUpdateUser.setLong(2, userid);
+                int rowsUpdated = stmtUpdateUser.executeUpdate();
+
+                stmtDeleteSubs.setLong(1, userid);
+                int rowsDeleted = stmtDeleteSubs.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    System.out.println("Подписка пользователя " + userid + " успешно обнулена.");
+                    conn.commit();
+                } else {
+                    System.out.println("Пользователь с ID " + userid + " не найден или ошибка при обновлении.");
+                    conn.rollback();
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            System.out.println("Ошибка при сбросе подписки пользователю " + userid + ": " + e.getMessage());
+            throw new RuntimeException("Не удалось сбросить подписку пользователю " + userid, e);
+        }
+    }
+
     public Timestamp getExpAtForUser(long userId) {
         String sql = "SELECT exp_at FROM Subscribes WHERE user_id = ?";
         try (Connection conn = getConnection();
