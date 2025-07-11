@@ -1,4 +1,4 @@
-package org.marensovich.Bot.YandexMapAPI;
+package org.marensovich.Bot.YandexMapAPI.YandexData;
 
 public enum YandexMapTypes {
 

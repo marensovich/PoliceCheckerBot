@@ -3,6 +3,7 @@ package org.marensovich.Bot.CommandsManager.Commands;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
 import org.marensovich.Bot.YandexMapAPI.*;
+import org.marensovich.Bot.YandexMapAPI.YandexData.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;

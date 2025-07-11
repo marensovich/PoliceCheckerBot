@@ -1,7 +1,4 @@
-package org.marensovich.Bot.YandexMapAPI;
-
-import java.util.HashMap;
-import java.util.Map;
+package org.marensovich.Bot.YandexMapAPI.YandexData;
 
 public enum YandexMapSize {
 

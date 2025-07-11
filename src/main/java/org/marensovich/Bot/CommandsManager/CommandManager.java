@@ -31,6 +31,17 @@ public class CommandManager {
     }
 
     public boolean executeCommand(Update update) {
+        if (update.getMessage().getText().contains(" ")){
+            String[] text = update.getMessage().getText().split(" ");
+            if (text[0].equals("/givesub")){
+                Command command = commands.get(text[0]);
+                if (command != null) {
+                    command.execute(update);
+                    return true;
+                }
+                return false;
+            }
+        }
         String text = update.getMessage().getText();
         Command command = commands.get(text);
         if (command != null) {

@@ -1,5 +1,7 @@
 package org.marensovich.Bot.YandexMapAPI;
 
+import org.marensovich.Bot.YandexMapAPI.YandexData.*;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;

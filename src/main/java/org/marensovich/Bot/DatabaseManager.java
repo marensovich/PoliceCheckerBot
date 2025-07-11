@@ -1,6 +1,8 @@
 package org.marensovich.Bot;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.marensovich.Bot.Data.SubscribeTypes;
+
 import java.sql.*;
 import java.time.Instant;
 
@@ -39,29 +41,35 @@ public class DatabaseManager {
 
     private void createTableIfNotExists() {
         String CREATE_ALL_USERS_TABLE_SQL = """
-            CREATE TABLE IF NOT EXISTS All_Users (
-                user_id BIGINT PRIMARY KEY,
-                registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )""";
+                CREATE TABLE IF NOT EXISTS All_Users (
+                    user_id BIGINT PRIMARY KEY,
+                    registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )""";
         String CREATE_USERS_TABLE_SQL = """
                 CREATE TABLE IF NOT EXISTS Users (
-                user_id BIGINT PRIMARY KEY,
-                yandex_lang ENUM("ru_RU", "en_US", "en_RU", "ru_UA", "uk_UA", "tr_TR") NOT NULL DEFAULT 'ru_RU',
-                yandex_theme ENUM("dark", "light") NOT NULL DEFAULT 'light',
-                yandex_maptype ENUM('map', 'driving', 'transit', 'admin') NOT NULL DEFAULT 'map',
-                is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-                subscribe BOOLEAN NOT NULL DEFAULT FALSE,
-                gen_map INTEGER NOT NULL DEFAULT 0,
-                registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    user_id BIGINT PRIMARY KEY,
+                    yandex_lang ENUM("ru_RU", "en_US", "en_RU", "ru_UA", "uk_UA", "tr_TR") NOT NULL DEFAULT 'ru_RU',
+                    yandex_theme ENUM("dark", "light") NOT NULL DEFAULT 'light',
+                    yandex_maptype ENUM('map', 'driving', 'transit', 'admin') NOT NULL DEFAULT 'map',
+                    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+                    subscribe ENUM("none", "vip", "premium") NOT NULL DEFAULT 'none',
+                    gen_map INTEGER NOT NULL DEFAULT 0,
+                    registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )""";
         String CREATE_POLICE_DATA_TABLE_SQL = """
                 CREATE TABLE IF NOT EXISTS Police (
-                id BIGINT PRIMARY KEY,
-                user_id BIGINT NOT NULL,
-                latitude FLOAT NOT NULL,
-                longitude FLOAT NOT NULL,
-                registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                comment TEXT
+                    id BIGINT PRIMARY KEY,
+                    user_id BIGINT NOT NULL,
+                    latitude FLOAT NOT NULL,
+                    longitude FLOAT NOT NULL,
+                    registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    comment TEXT
+                )""";
+        String CREATE_SUBSCRIBES_TABLE_SQL = """
+                CREATE TABLE IF NOT EXISTS Subscribes (
+                    user_id BIGINT PRIMARY KEY NOT NULL,
+                    `type` ENUM('none', 'vip', 'premium') NOT NULL,
+                    exp_at TIMESTAMP NOT NULL
                 )""";
 
         try (Connection conn = getConnection();
@@ -69,6 +77,7 @@ public class DatabaseManager {
             stmt.executeUpdate(CREATE_ALL_USERS_TABLE_SQL);
             stmt.executeUpdate(CREATE_USERS_TABLE_SQL);
             stmt.executeUpdate(CREATE_POLICE_DATA_TABLE_SQL);
+            stmt.executeUpdate(CREATE_SUBSCRIBES_TABLE_SQL);
             System.out.println("Таблицы All_Users, Users и Police успешно созданы или уже существовали");
         } catch (SQLException e) {
             System.err.println("Ошибка при создании таблицы: " + e.getMessage());
@@ -159,5 +168,56 @@ public class DatabaseManager {
             System.err.println("Ошибка при добавлении пользователя: " + e.getMessage());
             throw new RuntimeException("Не удалось добавить пользователя", e);
         }
+    }
+
+
+    public void addSub(long userid, SubscribeTypes type) {
+        String SQL_AddSub = "INSERT INTO Subscribes (user_id, `type`, exp_at) VALUES (?, ?, CURRENT_TIMESTAMP + INTERVAL 30 DAY)";
+        String SQL_UpdateUser = "UPDATE Users SET subscribe = ? WHERE user_id = ?";
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmtAdd = conn.prepareStatement(SQL_AddSub);
+                 PreparedStatement stmtUpdate = conn.prepareStatement(SQL_UpdateUser)) {
+                stmtAdd.setLong(1, userid);
+                stmtAdd.setString(2, type.toString());
+                int rowsAdded = stmtAdd.executeUpdate();
+
+                stmtUpdate.setString(1, type.toString());
+                stmtUpdate.setLong(2, userid);
+                int rowsUpdated = stmtUpdate.executeUpdate();
+
+                if (rowsAdded > 0 && rowsUpdated > 0) {
+                    System.out.println("Подписка " + type + " успешно выдана пользователю " + userid);
+                    conn.commit();
+                } else {
+                    System.out.println("Пользователь с ID " + userid + " не найден или ошибка при добавлении.");
+                    conn.rollback();
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            System.out.println("Ошибка при выдаче подписки пользователю " + userid + ": " + e.getMessage());
+            throw new RuntimeException("Не удалось выдать подписку пользователю " + userid, e);
+        }
+    }
+    public Timestamp getExpAtForUser(long userId) {
+        String sql = "SELECT exp_at FROM Subscribes WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getTimestamp("exp_at");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
