@@ -14,6 +14,7 @@ public class GetIDCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         String reply = "Ваш ID пользователя: *@id*\n" +
                        "Ваш username: *@username*";
 
@@ -29,5 +30,6 @@ public class GetIDCommand implements Command {
         } catch (TelegramApiException e){
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

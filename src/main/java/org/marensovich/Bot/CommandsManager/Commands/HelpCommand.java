@@ -1,5 +1,6 @@
 package org.marensovich.Bot.CommandsManager.Commands;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
@@ -20,8 +21,8 @@ public class HelpCommand implements Command {
 
     @Override
     public void execute(Update update) {
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
-
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
         boolean isRegistered = databaseManager.checkUsersExists(update.getMessage().getFrom().getId());
 
         if (!isRegistered) {
@@ -33,6 +34,7 @@ public class HelpCommand implements Command {
                     "• <code>/start</code> — начать работу с ботом\n" +
                     "• <code>/help</code> — вывести это сообщение\n" +
                     "• <code>/reg</code> — зарегистрироваться в системе\n" +
+                    "• <code>/cancel</code> — отменить активную команду\n" +
                     "Если у вас есть вопросы, обращайтесь к администратору - @marensovich";
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(update.getMessage().getChatId().toString());
@@ -45,7 +47,7 @@ public class HelpCommand implements Command {
             List<InlineKeyboardButton> checkRow = new ArrayList<>();
             InlineKeyboardButton checkButton = new InlineKeyboardButton();
             checkButton.setText("✔ Написать");
-            checkButton.setUrl("https://t.me/marensovich");
+            checkButton.setUrl(Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK"));
             checkRow.add(checkButton);
             keyboard.add(checkRow);
 
@@ -56,6 +58,7 @@ public class HelpCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -67,6 +70,7 @@ public class HelpCommand implements Command {
                     "• <code>/start</code> — начать работу с ботом\n" +
                     "• <code>/help</code> — вывести это сообщение\n" +
                     "• <code>/settings</code> — настроить параметры аккаунта\n" +
+                    "• <code>/cancel</code> — отменить активную команду\n" +
                     "• <code>/reg</code> — зарегистрироваться в системе\n" +
                     "• <code>/subscribe</code> — информация о подписках\n" +
                     "• <code>/getID</code> — получить ваш ID\n\n" +
@@ -74,7 +78,7 @@ public class HelpCommand implements Command {
                     "• <code>/agivesub &lt;user_id&gt; &lt;vip/premium&gt;</code> — выдать подписку пользователю\n" +
                     "• <code>/adelsub &lt;user_id&gt; &lt;reason&gt;</code> — снять подписку у пользователя\n" +
                     "• <code>/auserinfo &lt;user_id&gt;</code> — получить информацию о пользователе\n\n" +
-                    "Если у вас есть вопросы, обращайтесь к администратору - @marensovich";
+                    "Если у вас есть вопросы, обращайтесь в сообщения канала";
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(update.getMessage().getChatId().toString());
             sendMessage.setParseMode("HTML");
@@ -86,7 +90,7 @@ public class HelpCommand implements Command {
             List<InlineKeyboardButton> checkRow = new ArrayList<>();
             InlineKeyboardButton checkButton = new InlineKeyboardButton();
             checkButton.setText("✔ Написать");
-            checkButton.setUrl("https://t.me/marensovich");
+            checkButton.setUrl(Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK"));
             checkRow.add(checkButton);
             keyboard.add(checkRow);
 
@@ -97,6 +101,7 @@ public class HelpCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
         } else {
             String helpMessage = "<b>Помощь /help</b>\n\n" +
                     "Добро пожаловать! Этот бот предназначен для удобного отслеживания информации о постах ДПС\n" +
@@ -105,10 +110,11 @@ public class HelpCommand implements Command {
                     "• <code>/start</code> — начать работу с ботом\n" +
                     "• <code>/help</code> — вывести это сообщение\n" +
                     "• <code>/settings</code> — настроить параметры аккаунта\n" +
+                    "• <code>/cancel</code> — отменить активную команду\n" +
                     "• <code>/reg</code> — зарегистрироваться в системе\n" +
                     "• <code>/subscribe</code> — информация о подписках\n" +
                     "• <code>/getID</code> — получить ваш ID\n\n" +
-                    "Если у вас есть вопросы, обращайтесь к администратору - @marensovich";
+                    "Если у вас есть вопросы, обращайтесь в сообщения канала";
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(update.getMessage().getChatId().toString());
             sendMessage.setParseMode("HTML");
@@ -120,7 +126,7 @@ public class HelpCommand implements Command {
             List<InlineKeyboardButton> checkRow = new ArrayList<>();
             InlineKeyboardButton checkButton = new InlineKeyboardButton();
             checkButton.setText("✔ Написать");
-            checkButton.setUrl("https://t.me/marensovich");
+            checkButton.setUrl(Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK"));
             checkRow.add(checkButton);
             keyboard.add(checkRow);
 
@@ -131,7 +137,7 @@ public class HelpCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
         }
-
     }
 }

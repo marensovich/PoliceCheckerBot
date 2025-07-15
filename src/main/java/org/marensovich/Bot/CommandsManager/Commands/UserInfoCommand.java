@@ -19,8 +19,9 @@ public class UserInfoCommand implements Command {
         Long chatId = update.getMessage().getChatId();
         Long userId = update.getMessage().getFrom().getId();
 
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(userId, this);
 
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
         UserInfo userData;
         userData = databaseManager.getUserInfo(userId);
         if (userData == null) {
@@ -33,10 +34,11 @@ public class UserInfoCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             return;
         }
 
-    String message = String.format(
+        String message = String.format(
                 "<b>📋 Информация о пользователе:</b>\n" +
                         "<b> 🆔 ID: </b>%d\n" +
                         "<b> 🌐 Язык: </b>%s\n" +
@@ -67,5 +69,6 @@ public class UserInfoCommand implements Command {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
     }
 }

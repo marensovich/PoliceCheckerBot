@@ -16,6 +16,7 @@ import java.util.Map;
 public class CommandManager {
     private final Map<String, Command> commands = new HashMap<>();
     private final Map<String, Command> adminCommands = new HashMap<>();
+    private final Map<Long, Command> activeCommands = new HashMap<>();
 
     public CommandManager() {
         registerCommands();
@@ -31,6 +32,7 @@ public class CommandManager {
         register(new GetIDCommand());
         register(new UserInfoCommand());
         register(new AddPostCommand());
+        register(new CancelCommand());
 
         registerAdmin(new AdminGiveSubscribeCommand());
         registerAdmin(new AdminRemoveSubscribeCommand());
@@ -50,12 +52,27 @@ public class CommandManager {
         String[] parts = messageText.split(" ");
         String commandKey = parts[0];
 
-        Long userId = update.getMessage().getFrom().getId();
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        long userId = update.getMessage().getFrom().getId();
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
+
+
+        if (hasActiveCommand(userId) && !getActiveCommand(userId).equals("/cancel")) {
+            String reply = "Бот обрабатывает отправленную вами команду " + getActiveCommand(userId).getName() + "\n\n" +
+                    "В случае если это вы хотите прекратить выполнение команды - отправьте /cancel";
+            SendMessage msg = new SendMessage();
+            msg.setChatId(update.getMessage().getChatId());
+            msg.setText(reply);
+            try {
+                TelegramBot.getInstance().execute(msg);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        }
 
         boolean isRegistered = databaseManager.checkUsersExists(userId);
 
-        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help")) {
+        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help") && !commandKey.equals("/cancel")) {
             SendMessage msg = new SendMessage();
             msg.setChatId(update.getMessage().getChatId());
             msg.setText("Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
@@ -95,4 +112,23 @@ public class CommandManager {
             return false;
         }
     }
+
+    public void setActiveCommand(Long userId, Command command) {
+        System.out.println("Команда " + command.getName() + " закреплена за пользователем " + userId);
+        activeCommands.put(userId, command);
+    }
+
+    public void unsetActiveCommand(Long userId) {
+        System.out.println("Команда, закрепленная за пользователем " + userId + " удалена");
+        activeCommands.remove(userId);
+    }
+
+    public boolean hasActiveCommand(Long userId) {
+        return activeCommands.containsKey(userId);
+    }
+
+    public Command getActiveCommand(Long userId) {
+        return activeCommands.get(userId);
+    }
+
 }

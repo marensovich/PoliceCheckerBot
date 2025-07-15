@@ -14,6 +14,7 @@ public class StartCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
         sendMessage.setText("Бот пока в разработке, следите за новостями.");
@@ -22,5 +23,6 @@ public class StartCommand implements Command {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

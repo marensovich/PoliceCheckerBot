@@ -16,11 +16,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private static TelegramBot instance;
     private final DatabaseManager databaseManager;
+    private final CommandManager commandManager;
 
     public TelegramBot(DatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
+        this.commandManager = new CommandManager();
         CallbackManager callbackManager = new CallbackManager();
-        CommandManager commandManager = new CommandManager();
         instance = this;
     }
 
@@ -29,8 +30,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         return instance;
     }
 
-    public static DatabaseManager getDatabaseManager() { return instance.databaseManager; }
-    //public static CommandManager getCommandManager() { return instance.comma; }
+    public static DatabaseManager getDatabaseManager() {
+        return instance.databaseManager;
+    }
+
+    public CommandManager getCommandManager() {
+        return commandManager;
+    }
 
     @Override
     public void onUpdateReceived(Update update) {

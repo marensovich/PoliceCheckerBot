@@ -20,6 +20,7 @@ public class AdminGiveSubscribeCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         String messageText = update.getMessage().getText();
         String[] parts = messageText.split(" ");
 
@@ -33,6 +34,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -46,6 +48,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException e){
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -62,6 +65,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 throw new RuntimeException(ex);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -79,10 +83,11 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 throw new RuntimeException(ex);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
         databaseManager.addSub(target_id, subscribeType);
 
         Timestamp expAt = databaseManager.getExpAtForUser(target_id);
@@ -110,5 +115,6 @@ public class AdminGiveSubscribeCommand implements Command {
         } catch (TelegramApiException e){
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

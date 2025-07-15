@@ -21,6 +21,7 @@ public class SubscribeCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
 
         String reply = "* Здравствуйте! \uD83C\uDF89  *\n" +
                 "Рады представить наши подписки — *VIP* и *Premium*, которые откроют для вас новые возможности и сделают использование бота еще удобнее и приятнее.  \n" +
@@ -34,7 +35,6 @@ public class SubscribeCommand implements Command {
                 "*Для покупки обратитесь в сообщения канала. Начинайте сообщение с копирования ответа бота на команду /getID, так диалог пойдет проще и быстрее.*  \n" +
                 "Выберите подходящий тариф и наслаждайтесь всеми преимуществами! Если есть вопросы — пишите, мы всегда рады помочь!";
 
-
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
@@ -44,7 +44,6 @@ public class SubscribeCommand implements Command {
         checkButton.setUrl(Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK"));
         checkRow.add(checkButton);
         keyboard.add(checkRow);
-
         keyboardMarkup.setKeyboard(keyboard);
 
         SendPhoto sendPhoto = new SendPhoto();
@@ -53,11 +52,11 @@ public class SubscribeCommand implements Command {
         sendPhoto.setParseMode("Markdown");
         sendPhoto.setReplyMarkup(keyboardMarkup);
         sendPhoto.setPhoto(TelegramBot.getInstance().getPhotoFromResources("images/buy_sub_photo.jpg"));
-
         try {
             TelegramBot.getInstance().execute(sendPhoto);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

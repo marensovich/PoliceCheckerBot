@@ -27,9 +27,10 @@ public class RegisterCommand implements Command {
 
     @Override
     public void execute(Update update) {
-
         Long chatId = update.getMessage().getChatId();
         Long userId = update.getMessage().getFrom().getId();
+
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(userId, this);
 
         try {
             GetChatMember getChatMember = new GetChatMember();
@@ -44,8 +45,10 @@ public class RegisterCommand implements Command {
             }
         } catch (TelegramApiException e) {
             sendErrorMessage(chatId, "⚠️ Ошибка при проверке подписки. Попробуйте позже.");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             e.printStackTrace();
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
     }
 
     private boolean isMember(String status) {

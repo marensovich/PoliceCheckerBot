@@ -16,11 +16,12 @@ public class AdminUserInfoCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         String[] parts = update.getMessage().getText().split(" ");
         Long chatId = update.getMessage().getChatId();
         Long userId = update.getMessage().getFrom().getId();
 
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
 
         UserInfo userData;
 
@@ -36,6 +37,7 @@ public class AdminUserInfoCommand implements Command {
                 } catch (TelegramApiException ex) {
                     throw new RuntimeException(ex);
                 }
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 return;
             }
         } else {
@@ -53,6 +55,7 @@ public class AdminUserInfoCommand implements Command {
                 } catch (TelegramApiException ex) {
                     throw new RuntimeException(ex);
                 }
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 return;
             }
 
@@ -67,6 +70,7 @@ public class AdminUserInfoCommand implements Command {
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 return;
             }
         }
@@ -104,5 +108,6 @@ public class AdminUserInfoCommand implements Command {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }
