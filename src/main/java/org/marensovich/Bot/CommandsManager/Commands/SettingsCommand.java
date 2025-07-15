@@ -17,7 +17,7 @@ public class SettingsCommand implements Command {
         TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
-        sendMessage.setText("Команда в разработке");
+        sendMessage.setText("Настройка");
         try {
             TelegramBot.getInstance().execute(sendMessage);
         } catch (TelegramApiException e) {
