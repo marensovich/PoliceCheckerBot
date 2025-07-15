@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -31,7 +32,6 @@ public class AddPostCommand implements Command {
         AWAITING_CONFIRMATION
     }
 
-    // Состояние пользователя
     public static class UserState {
         State currentState;
         Location postLocation;
@@ -40,7 +40,7 @@ public class AddPostCommand implements Command {
 
         UserState() {
             this.currentState = State.AWAITING_LOCATION;
-            this.comment = null; // null означает отсутствие комментария
+            this.comment = null;
         }
 
         public boolean isAwaitingComment() {
@@ -83,7 +83,6 @@ public class AddPostCommand implements Command {
         }
     }
 
-    // Обработчики callback'ов
     public void handlePostType(Update update, String callbackData) throws TelegramApiException {
         Long userId = update.getCallbackQuery().getFrom().getId();
         UserState userState = getUserState(userId);
@@ -102,7 +101,7 @@ public class AddPostCommand implements Command {
         Long userId = update.getCallbackQuery().getFrom().getId();
         UserState userState = getUserState(userId);
 
-        userState.comment = "Отсутствует"; // Явно указываем отсутствие комментария
+        userState.comment = "Отсутствует";
         userState.currentState = State.AWAITING_CONFIRMATION;
         sendConfirmationMessage(update.getCallbackQuery().getMessage().getChatId(), userState);
     }
@@ -122,7 +121,6 @@ public class AddPostCommand implements Command {
         cleanupUserState(userId);
     }
 
-    // Приватные методы
     private void handleLocationStage(Update update, UserState userState) throws TelegramApiException {
         if (update.getMessage().hasLocation()) {
             userState.postLocation = update.getMessage().getLocation();
@@ -155,6 +153,14 @@ public class AddPostCommand implements Command {
     }
 
     private void askForPostType(Long chatId) throws TelegramApiException {
+        SendMessage removeKeyboard = new SendMessage();
+        removeKeyboard.setChatId(chatId.toString());
+        removeKeyboard.setText("Обработка данных...");
+        removeKeyboard.setReplyMarkup(ReplyKeyboardRemove.builder()
+                .removeKeyboard(true)
+                .build());
+        TelegramBot.getInstance().execute(removeKeyboard);
+
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText("Выберите тип поста:");
@@ -181,7 +187,7 @@ public class AddPostCommand implements Command {
     private void requestLocation(Long chatId) throws TelegramApiException {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
-        message.setText("Пожалуйста, поделитесь вашей геопозицией:");
+        message.setText("Отметьте точку на карте, где расположены сотрудники ДПС используя геолокацию:");
 
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
@@ -198,7 +204,6 @@ public class AddPostCommand implements Command {
         TelegramBot.getInstance().execute(message);
     }
 
-    // Методы создания клавиатур
     private InlineKeyboardMarkup getPostTypeKeyboard() {
         return InlineKeyboardMarkup.builder()
                 .keyboard(List.of(
@@ -248,7 +253,6 @@ public class AddPostCommand implements Command {
                 .build();
     }
 
-    // Вспомогательные методы
     public UserState getUserState(Long userId) {
         return userStates.computeIfAbsent(userId, k -> new UserState());
     }
@@ -276,7 +280,6 @@ public class AddPostCommand implements Command {
     }
 
     private void savePostToDatabase(Long userId, Location location, String postType, String comment) {
-        // Здесь должна быть логика сохранения в базу данных
         System.out.printf(
                 "Создан пост: userId=%d, type=%s, lat=%.6f, lon=%.6f, comment=%s%n",
                 userId, postType, location.getLatitude(), location.getLongitude(),
