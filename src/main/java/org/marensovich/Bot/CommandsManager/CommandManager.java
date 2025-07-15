@@ -50,7 +50,6 @@ public class CommandManager {
     public boolean executeCommand(Update update) {
         long userId = update.getMessage().getFrom().getId();
 
-
         if (update.hasMessage() && !update.getMessage().hasText()) {
             Command activeCommand = activeCommands.get(userId);
             activeCommand.execute(update);
@@ -80,7 +79,6 @@ public class CommandManager {
 
         DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
 
-
         boolean isRegistered = databaseManager.checkUsersExists(userId);
 
         if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help") && !commandKey.equals("/cancel")) {
@@ -94,7 +92,6 @@ public class CommandManager {
             }
             return true;
         }
-
         if (adminCommands.containsKey(commandKey)) {
             if (!databaseManager.checkUserIsAdmin(userId)) {
                 SendMessage sendMessage = new SendMessage();
@@ -114,7 +111,6 @@ public class CommandManager {
             }
             return false;
         }
-
         Command command = commands.get(commandKey);
         if (command != null) {
             command.execute(update);

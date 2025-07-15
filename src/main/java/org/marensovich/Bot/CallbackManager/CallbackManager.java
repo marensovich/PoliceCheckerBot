@@ -34,15 +34,12 @@ public class CallbackManager {
         if (!update.hasCallbackQuery()) {
             return false;
         }
-
         String callbackData = update.getCallbackQuery().getData();
         TelegramCallbackHandler handler = handlers.get(callbackData);
-
         if (handler != null) {
             handler.handle(update);
             return true;
         }
-
         System.out.println("No handler found for: " + callbackData);
         return false;
     }

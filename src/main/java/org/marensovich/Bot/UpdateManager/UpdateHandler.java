@@ -36,24 +36,16 @@ public class UpdateHandler {
             }
             if (update.hasCallbackQuery()) {
                 Long userId = update.getCallbackQuery().getFrom().getId();
-
-                // 1. Регистрируем пользователя если нужно
                 if (!TelegramBot.getDatabaseManager().checkAllUsersExists(userId)) {
                     TelegramBot.getDatabaseManager().addAllUser(userId);
                 }
-
-                // 2. Логирование для отладки
                 System.out.println("Processing callback: " + update.getCallbackQuery().getData());
-
-                // 3. Обрабатываем callback
                 boolean handled = TelegramBot.getInstance().getCallbackManager().handleCallback(update);
-
                 if (!handled) {
                     System.out.println("No handler found for callback: " + update.getCallbackQuery().getData());
-                    // Можно отправить сообщение об ошибке пользователю
                     SendMessage errorMsg = new SendMessage();
                     errorMsg.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
-                    errorMsg.setText("Команда не распознана, попробуйте ещё раз");
+                    errorMsg.setText("Действие не распознано, попробуйте ещё раз");
                     try {
                         TelegramBot.getInstance().execute(errorMsg);
                     } catch (TelegramApiException e) {
