@@ -100,14 +100,16 @@ public class AdminGiveSubscribeCommand implements Command {
             formattedDate = "неизвестна";
         }
 
-        String notif = "🎉 Ваша подписка успешно обновлена! 🎉\n\n" +
-                "Статус вашей подписки теперь активен до *" + formattedDate + "*.\n\n" +
-                "Благодарим за доверие!\n" +
-                "Если у вас есть вопросы или потребуется помощь — обращайтесь к @marensovich";
+        String notif = """
+                🎉 Ваша подписка успешно обновлена! 🎉
+                Статус вашей подписки теперь активен до *%formattedDate%*.
+                Благодарим за доверие!
+                Если у вас есть вопросы или потребуется помощь — обращайтесь в сообщения канала.
+                """;
 
         SendMessage replyMessage = new SendMessage();
         replyMessage.setChatId(target_id);
-        replyMessage.setText(notif);
+        replyMessage.setText(notif.replace("%formattedDate%", formattedDate));
         replyMessage.enableMarkdown(true);
 
         try {

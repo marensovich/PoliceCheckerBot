@@ -48,33 +48,38 @@ public class CommandManager {
     }
 
     public boolean executeCommand(Update update) {
-        String messageText = update.getMessage().getText().trim();
-        String[] parts = messageText.split(" ");
-        String commandKey = parts[0];
-
         long userId = update.getMessage().getFrom().getId();
-        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
 
 
-        if (hasActiveCommand(userId)) {
-            if (getActiveCommand(userId).equals("/cancel")) {
-                String reply = "Бот обрабатывает отправленную вами команду " + getActiveCommand(userId).getName() + "\n\n" +
-                        "В случае если это вы хотите прекратить выполнение команды - отправьте /cancel";
+        if (update.hasMessage() && !update.getMessage().hasText()) {
+            Command activeCommand = activeCommands.get(userId);
+            activeCommand.execute(update);
+            return true;
+
+        } else {
+            if (hasActiveCommand(userId)) {
+                String reply = """
+                        Бот обрабатывает отправленную вами команду %command%
+        
+                        В случае если это вы хотите прекратить выполнение команды - отправьте /cancel
+                        """;
                 SendMessage msg = new SendMessage();
                 msg.setChatId(update.getMessage().getChatId());
-                msg.setText(reply);
+                msg.setText(reply.replace("%command%", getActiveCommand(userId).getName()));
                 try {
                     TelegramBot.getInstance().execute(msg);
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
-                return true;
-            } else {
-                Command activeCommand = activeCommands.get(userId);
-                activeCommand.execute(update);
-                return true;
             }
         }
+
+        String messageText = update.getMessage().getText().trim();
+        String[] parts = messageText.split(" ");
+        String commandKey = parts[0];
+
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
+
 
         boolean isRegistered = databaseManager.checkUsersExists(userId);
 

@@ -47,7 +47,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         UpdateHandler updateHandler = new UpdateHandler();
-        updateHandler.updateHandler(update);
+        try {
+            updateHandler.updateHandler(update);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public InputFile getPhotoFromResources(String filename) {

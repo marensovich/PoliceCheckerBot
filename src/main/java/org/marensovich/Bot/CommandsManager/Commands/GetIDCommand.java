@@ -15,8 +15,11 @@ public class GetIDCommand implements Command {
     @Override
     public void execute(Update update) {
         TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
-        String reply = "Ваш ID пользователя: *@id*\n" +
-                       "Ваш username: *@username*";
+
+        String reply = """
+                Ваш ID пользователя: *@id*
+                Ваш username: *@username*
+                """;
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setText(reply

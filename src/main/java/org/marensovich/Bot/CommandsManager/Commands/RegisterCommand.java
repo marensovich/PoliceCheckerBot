@@ -17,6 +17,8 @@ import java.util.List;
 
 public class RegisterCommand implements Command {
 
+    public static final String CALLBACK_CONFIRM = "check_subscription";
+
     private static final String CHANNEL_ID = Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_ID");
     private static final String CHANNEL_LINK = Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK");
 
@@ -76,7 +78,7 @@ public class RegisterCommand implements Command {
         List<InlineKeyboardButton> checkRow = new ArrayList<>();
         InlineKeyboardButton checkButton = new InlineKeyboardButton();
         checkButton.setText("Проверить подписку ✅");
-        checkButton.setCallbackData("check_subscription");
+        checkButton.setCallbackData(CALLBACK_CONFIRM);
         checkRow.add(checkButton);
         keyboard.add(checkRow);
 
@@ -92,7 +94,7 @@ public class RegisterCommand implements Command {
 
     private void registerUser(Long userId, Long chatId) {
         try {
-            DatabaseManager dbManager = TelegramBot.getInstance().getDatabaseManager();
+            DatabaseManager dbManager = TelegramBot.getDatabaseManager();
 
             if (dbManager.checkUsersExists(userId)) {
                 sendSuccessMessage(chatId, "ℹ️ Вы уже зарегистрированы!");

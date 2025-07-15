@@ -70,13 +70,16 @@ public class AdminRemoveSubscribeCommand implements Command {
 
         TelegramBot.getDatabaseManager().resetSub(target_id);
 
-        String notif = "*\uD83D\uDEAB Ваша подписка была отменена или досрочно завершена администратором.*\n" +
-                "*Причина:* " + reason + "\n" +
-                "Если у вас есть вопросы или хотите узнать подробности, пожалуйста, обратитесь к администратору - *@marensovich*.";
+        String notif = """
+                *\uD83D\uDEAB Ваша подписка была отменена или досрочно завершена администратором.*
+                *Причина:* %reason%.
+                Благодарим за доверие!
+                Если у вас есть вопросы или хотите узнать подробности, пожалуйста, обратитесь к администратору в сообщения канала.
+                """;
 
         SendMessage message = new SendMessage();
         message.setChatId(target_id);
-        message.setText(notif);
+        message.setText(notif.replace("%reason%", reason));
         message.enableMarkdown(true);
 
         try {
