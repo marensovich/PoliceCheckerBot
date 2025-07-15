@@ -15,6 +15,7 @@ public class AdminRemoveSubscribeCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         String messageText = update.getMessage().getText();
         String[] parts = messageText.split(" ", 3);
 
@@ -29,6 +30,7 @@ public class AdminRemoveSubscribeCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -45,6 +47,7 @@ public class AdminRemoveSubscribeCommand implements Command {
             } catch (TelegramApiException e){
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -61,19 +64,22 @@ public class AdminRemoveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 throw new RuntimeException(ex);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
-        databaseManager.resetSub(target_id);
+        TelegramBot.getDatabaseManager().resetSub(target_id);
 
-        String notif = "*\uD83D\uDEAB Ваша подписка была отменена или досрочно завершена администратором.*\n" +
-                "*Причина:* " + reason + "\n" +
-                "Если у вас есть вопросы или хотите узнать подробности, пожалуйста, обратитесь к администратору - *@marensovich*.";
+        String notif = """
+                *\uD83D\uDEAB Ваша подписка была отменена или досрочно завершена администратором.*
+                *Причина:* %reason%.
+                Благодарим за доверие!
+                Если у вас есть вопросы или хотите узнать подробности, пожалуйста, обратитесь к администратору в сообщения канала.
+                """;
 
         SendMessage message = new SendMessage();
         message.setChatId(target_id);
-        message.setText(notif);
+        message.setText(notif.replace("%reason%", reason));
         message.enableMarkdown(true);
 
         try {
@@ -81,5 +87,6 @@ public class AdminRemoveSubscribeCommand implements Command {
         } catch (TelegramApiException e){
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

@@ -2,6 +2,7 @@ package org.marensovich.Bot.CallbackManager.CallBacks;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
+import org.marensovich.Bot.CommandsManager.Commands.RegisterCommand;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,7 +13,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class CheckSubscriptionHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return "check_subscription";
+        return RegisterCommand.CALLBACK_CONFIRM;
     }
 
     @Override

@@ -3,31 +3,53 @@ package org.marensovich.Bot.CommandsManager.Commands;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.*;
 
 public class AddPostCommand implements Command {
 
-    private static class UserSession {
-        enum State {
-            WAITING_FOR_LOCATION,
-            WAITING_FOR_CONFIRM_LOCATION,
-            WAITING_FOR_POST_TYPE,
-            WAITING_FOR_CONFIRM_COMPLETE,
-            COMPLETED
-        }
+    public static final String CALLBACK_PREFIX = "post_";
+    public static final String CALLBACK_DPS = CALLBACK_PREFIX + "dps";
+    public static final String CALLBACK_PATROL = CALLBACK_PREFIX + "patrol";
+    public static final String CALLBACK_CONFIRM = CALLBACK_PREFIX + "confirm";
+    public static final String CALLBACK_CANCEL = CALLBACK_PREFIX + "cancel";
+    public static final String CALLBACK_NO_COMMENT = CALLBACK_PREFIX + "no_comment";
 
-        State currentState = State.WAITING_FOR_LOCATION;
-        String location = null;
-        String postType = null;
+    private enum State {
+        AWAITING_LOCATION,
+        AWAITING_TYPE,
+        AWAITING_COMMENT,
+        AWAITING_CONFIRMATION
     }
 
-    private static final Map<Long, UserSession> userSessions = new HashMap<>();
+    public static class UserState {
+        State currentState;
+        Location postLocation;
+        String postType;
+        String comment;
+
+        UserState() {
+            this.currentState = State.AWAITING_LOCATION;
+            this.comment = null;
+        }
+
+        public boolean isAwaitingComment() {
+            return currentState == State.AWAITING_COMMENT;
+        }
+
+    }
+
+    private final Map<Long, UserState> userStates = new HashMap<>();
 
     @Override
     public String getName() {
@@ -36,129 +58,256 @@ public class AddPostCommand implements Command {
 
     @Override
     public void execute(Update update) {
-        Long userId = update.getMessage() != null ? update.getMessage().getFrom().getId()
-                : update.getCallbackQuery().getFrom().getId();
-        Long chatId = null;
+        Long userId = update.getMessage().getFrom().getId();
+        UserState userState = getUserState(userId);
 
-        if (update.hasMessage()) {
-            chatId = update.getMessage().getChatId();
-        } else if (update.hasCallbackQuery()) {
-            chatId = update.getCallbackQuery().getMessage().getChatId();
+        if (!TelegramBot.getInstance().getCommandManager().hasActiveCommand(userId)) {
+            TelegramBot.getInstance().getCommandManager().setActiveCommand(userId, this);
         }
-
-        UserSession session = userSessions.getOrDefault(userId, new UserSession());
-        userSessions.put(userId, session);
-
-        if (update.hasMessage() && update.getMessage().isCommand() && "/post".equals(update.getMessage().getText())) {
-            session = new UserSession();
-            userSessions.put(userId, session);
-            sendMessage(chatId, "Пожалуйста, отправьте геолокацию.");
-            session.currentState = UserSession.State.WAITING_FOR_LOCATION;
-            return;
-        }
-
-        if (update.hasCallbackQuery()) {
-            handleCallback(update.getCallbackQuery(), userId, chatId);
-            return;
-        }
-
-        switch (session.currentState) {
-            case WAITING_FOR_LOCATION:
-                if (update.hasMessage() && update.getMessage().hasLocation()) {
-                    Location loc = update.getMessage().getLocation();
-                    session.location = "Lat: " + loc.getLatitude() + ", Lon: " + loc.getLongitude();
-                    session.currentState = UserSession.State.WAITING_FOR_CONFIRM_LOCATION;
-
-                    sendMessage(chatId, "Это правильное место?", createYesNoKeyboard("location_yes_", userId));
-                } else {
-                    sendMessage(chatId, "Пожалуйста, отправьте геолокацию.");
-                }
-                break;
-
-            case WAITING_FOR_POST_TYPE:
-                String text = update.getMessage().getText();
-                if ("Пост ДПС".equalsIgnoreCase(text) || "Патрулька".equalsIgnoreCase(text)) {
-                    session.postType = text;
-                    session.currentState = UserSession.State.WAITING_FOR_CONFIRM_COMPLETE;
-
-                    sendMessage(chatId, "Точно все?", createYesNoKeyboard("all_yes_", userId));
-                } else {
-                    sendMessage(chatId, "Пожалуйста, выберите тип поста:\n- Пост ДПС\n- Патрулька");
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void handleCallback(CallbackQuery callback, Long userId, Long chatId) {
-        String data = callback.getData();
-
-        UserSession session = userSessions.get(userId);
-        if (session == null) return;
-
-        if (data.startsWith("location_yes_")) {
-            // Пользователь подтвердил место
-            session.currentState = UserSession.State.WAITING_FOR_POST_TYPE;
-            sendMessage(chatId, "Выберите тип поста:\n- Пост ДПС\n- Патрулька");
-        } else if (data.startsWith("location_no_")) {
-            // Пользователь передумал — снова просим отправить локацию
-            session.currentState = UserSession.State.WAITING_FOR_LOCATION;
-            sendMessage(chatId, "Пожалуйста, отправьте геолокацию еще раз.");
-        } else if (data.startsWith("all_yes_")) {
-            // Пользователь подтвердил все — сохраняем и завершаем
-            userSessions.remove(userId);
-            // Тут можно добавить сохранение данных в БД
-
-            sendMessage(chatId, "Данные успешно сохранены!");
-        } else if (data.startsWith("all_no_")) {
-            // Пользователь хочет внести изменения — начинаем заново или уточняем что именно
-            UserSession newSession = new UserSession();
-            userSessions.put(userId, newSession);
-
-            sendMessage(chatId, "Повторите ввод типа поста:\n- Пост ДПС\n- Патрулька");
-        }
-    }
-
-    private InlineKeyboardMarkup createYesNoKeyboard(String prefix, Long userId) {
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        InlineKeyboardButton yesBtn = new InlineKeyboardButton();
-        yesBtn.setText("Да");
-        yesBtn.setCallbackData(prefix + userId);
-
-        InlineKeyboardButton noBtn = new InlineKeyboardButton();
-        noBtn.setText("Нет");
-        noBtn.setCallbackData(prefix + userId);
-
-        rows.add(Arrays.asList(yesBtn, noBtn));
-
-        markup.setKeyboard(rows);
-        return markup;
-    }
-
-    private void sendMessage(Long chatId, String text) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId.toString());
-        message.setText(text);
 
         try {
-            TelegramBot.getInstance().execute(message);
+            switch (userState.currentState) {
+                case AWAITING_LOCATION:
+                    handleLocationStage(update, userState);
+                    break;
+                case AWAITING_COMMENT:
+                    handleCommentStage(update, userState);
+                    break;
+                case AWAITING_CONFIRMATION:
+                    handleTextConfirmation(update, userState);
+                    break;
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            cleanupUserState(userId);
+            sendErrorMessage(update.getMessage().getChatId(), "Ошибка: " + e.getMessage());
         }
     }
 
-    private void sendMessage(Long chatId, String text, InlineKeyboardMarkup keyboard) {
+    public void handlePostType(Update update, String callbackData) throws TelegramApiException {
+        Long userId = update.getCallbackQuery().getFrom().getId();
+        UserState userState = getUserState(userId);
+
+        if (callbackData.equals(CALLBACK_DPS)) {
+            userState.postType = "Пост ДПС";
+        } else if (callbackData.equals(CALLBACK_PATROL)) {
+            userState.postType = "Патрульная машина";
+        }
+
+        userState.currentState = State.AWAITING_COMMENT;
+        requestComment(update.getCallbackQuery().getMessage().getChatId());
+    }
+
+    public void handleSkipComment(Update update) throws TelegramApiException {
+        Long userId = update.getCallbackQuery().getFrom().getId();
+        UserState userState = getUserState(userId);
+
+        userState.comment = "Отсутствует";
+        userState.currentState = State.AWAITING_CONFIRMATION;
+        sendConfirmationMessage(update.getCallbackQuery().getMessage().getChatId(), userState);
+    }
+
+    public void handlePostConfirm(Update update) throws TelegramApiException {
+        Long userId = update.getCallbackQuery().getFrom().getId();
+        UserState userState = getUserState(userId);
+
+        savePostToDatabase(userId, userState.postLocation, userState.postType, userState.comment);
+        sendSuccessMessage(update.getCallbackQuery().getMessage().getChatId());
+        cleanupUserState(userId);
+    }
+
+    public void handlePostCancel(Update update) throws TelegramApiException {
+        Long userId = update.getCallbackQuery().getFrom().getId();
+        sendCancelMessage(update.getCallbackQuery().getMessage().getChatId());
+        cleanupUserState(userId);
+    }
+
+    private void handleLocationStage(Update update, UserState userState) throws TelegramApiException {
+        if (update.getMessage().hasLocation()) {
+            userState.postLocation = update.getMessage().getLocation();
+            userState.currentState = State.AWAITING_TYPE;
+            askForPostType(update.getMessage().getChatId());
+        } else {
+            requestLocation(update.getMessage().getChatId());
+        }
+    }
+
+    private void handleCommentStage(Update update, UserState userState) throws TelegramApiException {
+        if (update.getMessage().hasText()) {
+            userState.comment = update.getMessage().getText();
+            userState.currentState = State.AWAITING_CONFIRMATION;
+            sendConfirmationMessage(update.getMessage().getChatId(), userState);
+        }
+    }
+
+    private void handleTextConfirmation(Update update, UserState userState) throws TelegramApiException {
+        String text = update.getMessage().getText();
+        if (text.equalsIgnoreCase("да")) {
+            savePostToDatabase(update.getMessage().getFrom().getId(),
+                    userState.postLocation, userState.postType, userState.comment);
+            sendSuccessMessage(update.getMessage().getChatId());
+            cleanupUserState(update.getMessage().getFrom().getId());
+        } else if (text.equalsIgnoreCase("нет")) {
+            sendCancelMessage(update.getMessage().getChatId());
+            cleanupUserState(update.getMessage().getFrom().getId());
+        }
+    }
+
+    private void askForPostType(Long chatId) throws TelegramApiException {
+        SendMessage removeKeyboard = new SendMessage();
+        removeKeyboard.setChatId(chatId.toString());
+        removeKeyboard.setText("Обработка данных...");
+        removeKeyboard.setReplyMarkup(ReplyKeyboardRemove.builder()
+                .removeKeyboard(true)
+                .build());
+        TelegramBot.getInstance().execute(removeKeyboard);
+
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
-        message.setText(text);
-        message.setReplyMarkup(keyboard);
+        message.setText("Выберите тип поста:");
+        message.setReplyMarkup(getPostTypeKeyboard());
+        TelegramBot.getInstance().execute(message);
+    }
 
+    private void requestComment(Long chatId) throws TelegramApiException {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText("Пожалуйста, введите комментарий к посту:");
+        message.setReplyMarkup(getSkipCommentKeyboard());
+        TelegramBot.getInstance().execute(message);
+    }
+
+    private void sendConfirmationMessage(Long chatId, UserState userState) throws TelegramApiException {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText(getConfirmationMessage(userState));
+        message.setReplyMarkup(getConfirmationKeyboard());
+        TelegramBot.getInstance().execute(message);
+    }
+
+    private void requestLocation(Long chatId) throws TelegramApiException {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText("Отметьте точку на карте, где расположены сотрудники ДПС используя геолокацию:");
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton locationButton = new KeyboardButton("Отправить местоположение");
+        locationButton.setRequestLocation(true);
+        row.add(locationButton);
+
+        keyboardMarkup.setKeyboard(List.of(row));
+        message.setReplyMarkup(keyboardMarkup);
+
+        TelegramBot.getInstance().execute(message);
+    }
+
+    private InlineKeyboardMarkup getPostTypeKeyboard() {
+        return InlineKeyboardMarkup.builder()
+                .keyboard(List.of(
+                        List.of(
+                                InlineKeyboardButton.builder()
+                                        .text("Пост ДПС")
+                                        .callbackData(CALLBACK_DPS)
+                                        .build()
+                        ),
+                        List.of(
+                                InlineKeyboardButton.builder()
+                                        .text("Патрульная машина")
+                                        .callbackData(CALLBACK_PATROL)
+                                        .build()
+                        )
+                ))
+                .build();
+    }
+
+    private InlineKeyboardMarkup getSkipCommentKeyboard() {
+        return InlineKeyboardMarkup.builder()
+                .keyboard(List.of(
+                        List.of(
+                                InlineKeyboardButton.builder()
+                                        .text("Пропустить комментарий")
+                                        .callbackData(CALLBACK_NO_COMMENT)
+                                        .build()
+                        )
+                ))
+                .build();
+    }
+
+    private InlineKeyboardMarkup getConfirmationKeyboard() {
+        return InlineKeyboardMarkup.builder()
+                .keyboard(List.of(
+                        List.of(
+                                InlineKeyboardButton.builder()
+                                        .text("Подтвердить")
+                                        .callbackData(CALLBACK_CONFIRM)
+                                        .build(),
+                                InlineKeyboardButton.builder()
+                                        .text("Отменить")
+                                        .callbackData(CALLBACK_CANCEL)
+                                        .build()
+                        )
+                ))
+                .build();
+    }
+
+    public UserState getUserState(Long userId) {
+        return userStates.computeIfAbsent(userId, k -> new UserState());
+    }
+
+    private void cleanupUserState(Long userId) {
+        userStates.remove(userId);
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
+    }
+
+    private String getConfirmationMessage(UserState userState) {
+        String commentStatus = userState.comment != null ?
+                userState.comment : "Комментарий отсутствует";
+
+        return String.format(
+                "Подтвердите создание поста:\n\n" +
+                        "Тип: %s\n" +
+                        "Координаты: %.6f, %.6f\n" +
+                        "Комментарий: %s\n\n" +
+                        "Все верно?",
+                userState.postType,
+                userState.postLocation.getLatitude(),
+                userState.postLocation.getLongitude(),
+                commentStatus
+        );
+    }
+
+    private void savePostToDatabase(Long userId, Location location, String postType, String comment) {
+        System.out.printf(
+                "Создан пост: userId=%d, type=%s, lat=%.6f, lon=%.6f, comment=%s%n",
+                userId, postType, location.getLatitude(), location.getLongitude(),
+                comment != null ? comment : "null"
+        );
+    }
+
+    private void sendSuccessMessage(Long chatId) throws TelegramApiException {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText("✅ Пост успешно создан!");
+        TelegramBot.getInstance().execute(message);
+    }
+
+    private void sendCancelMessage(Long chatId) throws TelegramApiException {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText("❌ Создание поста отменено");
+        TelegramBot.getInstance().execute(message);
+    }
+
+    private void sendErrorMessage(Long chatId, String errorText) {
         try {
+            SendMessage message = new SendMessage();
+            message.setChatId(chatId.toString());
+            message.setText("⚠️ " + errorText);
             TelegramBot.getInstance().execute(message);
-        } catch (Exception e) {
+        } catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }
