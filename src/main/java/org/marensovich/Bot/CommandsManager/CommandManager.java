@@ -56,18 +56,24 @@ public class CommandManager {
         DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
 
 
-        if (hasActiveCommand(userId) && !getActiveCommand(userId).equals("/cancel")) {
-            String reply = "Бот обрабатывает отправленную вами команду " + getActiveCommand(userId).getName() + "\n\n" +
-                    "В случае если это вы хотите прекратить выполнение команды - отправьте /cancel";
-            SendMessage msg = new SendMessage();
-            msg.setChatId(update.getMessage().getChatId());
-            msg.setText(reply);
-            try {
-                TelegramBot.getInstance().execute(msg);
-            } catch (TelegramApiException e) {
-                throw new RuntimeException(e);
+        if (hasActiveCommand(userId)) {
+            if (getActiveCommand(userId).equals("/cancel")) {
+                String reply = "Бот обрабатывает отправленную вами команду " + getActiveCommand(userId).getName() + "\n\n" +
+                        "В случае если это вы хотите прекратить выполнение команды - отправьте /cancel";
+                SendMessage msg = new SendMessage();
+                msg.setChatId(update.getMessage().getChatId());
+                msg.setText(reply);
+                try {
+                    TelegramBot.getInstance().execute(msg);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+                return true;
+            } else {
+                Command activeCommand = activeCommands.get(userId);
+                activeCommand.execute(update);
+                return true;
             }
-            return true;
         }
 
         boolean isRegistered = databaseManager.checkUsersExists(userId);

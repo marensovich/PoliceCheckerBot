@@ -17,10 +17,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static TelegramBot instance;
     private final DatabaseManager databaseManager;
     private final CommandManager commandManager;
+    private final CallbackManager callbackManager;
 
     public TelegramBot(DatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
         this.commandManager = new CommandManager();
+        this.callbackManager = new CallbackManager();
         CallbackManager callbackManager = new CallbackManager();
         instance = this;
     }
@@ -32,6 +34,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     public static DatabaseManager getDatabaseManager() {
         return instance.databaseManager;
+    }
+
+    public CallbackManager getCallbackManager() {
+        return callbackManager;
     }
 
     public CommandManager getCommandManager() {
