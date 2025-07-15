@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CommandManager {
     private final Map<String, Command> commands = new HashMap<>();
@@ -55,8 +56,15 @@ public class CommandManager {
             activeCommand.execute(update);
             return true;
 
-        } else {
-            if (hasActiveCommand(userId)) {
+        } else if (hasActiveCommand(userId)) {
+            Command activeCommand = activeCommands.get(userId);
+            if (activeCommand instanceof AddPostCommand) {
+                AddPostCommand addPostCommand = (AddPostCommand) activeCommand;
+                AddPostCommand.UserState state = addPostCommand.getUserState(userId);
+                if (state.isAwaitingComment()){
+                    activeCommand.execute(update);
+                }
+            } else {
                 String reply = """
                         Бот обрабатывает отправленную вами команду %command%
         
@@ -136,6 +144,10 @@ public class CommandManager {
 
     public Command getActiveCommand(Long userId) {
         return activeCommands.get(userId);
+    }
+
+    public Optional<Command> getActiveCommands(Long userId) {
+        return Optional.ofNullable(activeCommands.get(userId));
     }
 
 }

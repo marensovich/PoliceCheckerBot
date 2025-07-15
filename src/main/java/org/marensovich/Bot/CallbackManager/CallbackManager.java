@@ -1,9 +1,6 @@
 package org.marensovich.Bot.CallbackManager;
 
-import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.PostCancelHandler;
-import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.PostConfirmHandler;
-import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.PostDPSHandler;
-import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.PostPatrolHandler;
+import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.CheckSubscriptionHandler;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -24,6 +21,7 @@ public class CallbackManager {
         register(new PostConfirmHandler());
         register(new PostDPSHandler());
         register(new PostPatrolHandler());
+        register(new NoCommentHandler());
     }
 
     private void register(TelegramCallbackHandler handler) {
