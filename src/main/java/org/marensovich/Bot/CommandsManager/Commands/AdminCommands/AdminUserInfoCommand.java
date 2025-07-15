@@ -16,11 +16,12 @@ public class AdminUserInfoCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         String[] parts = update.getMessage().getText().split(" ");
         Long chatId = update.getMessage().getChatId();
         Long userId = update.getMessage().getFrom().getId();
 
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
 
         UserInfo userData;
 
@@ -36,6 +37,7 @@ public class AdminUserInfoCommand implements Command {
                 } catch (TelegramApiException ex) {
                     throw new RuntimeException(ex);
                 }
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 return;
             }
         } else {
@@ -53,6 +55,7 @@ public class AdminUserInfoCommand implements Command {
                 } catch (TelegramApiException ex) {
                     throw new RuntimeException(ex);
                 }
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 return;
             }
 
@@ -67,22 +70,24 @@ public class AdminUserInfoCommand implements Command {
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 return;
             }
         }
 
         String message = String.format(
-                "<b>📋 Информация о пользователе:</b>\n" +
-                        "<b> 🆔 ID: </b>%d\n" +
-                        "<b> 🌐 Язык: </b>%s\n" +
-                        "<b> 🎨 Тема: </b>%s\n" +
-                        "<b> 🗺️ Тип карты: </b>%s\n" +
-                        "<b> 🛡️ Админ: </b>%s\n" +
-                        "<b> 🔔 Подписка: </b>%s\n" +
-                        "<b> 🗺️ Генерация карты: </b>%d\n" +
-                        "<b> 📝 Зарегистрирован: </b>%s\n" +
-                        "<b> 💳 Тип подписки: </b>%s\n" +
-                        "<b> ⏰ Истекает подписка: </b>%s",
+                """
+                        <b>📋 Информация о пользователе:</b>
+                        <b> 🆔 ID: </b>%d
+                        <b> 🌐 Язык: </b>%s
+                        <b> 🎨 Тема: </b>%s
+                        <b> 🗺️ Тип карты: </b>%s
+                        <b> 🛡️ Админ: </b>%s
+                        <b> 🔔 Подписка: </b>%s
+                        <b> 🗺️ Генерация карты: </b>%d
+                        <b> 📝 Зарегистрирован: </b>%s
+                        <b> 💳 Тип подписки: </b>%s
+                        <b> ⏰ Истекает подписка: </b>%s""",
                 userData.getUserId(),
                 userData.getYandexLang(),
                 userData.getYandexTheme(),
@@ -104,5 +109,6 @@ public class AdminUserInfoCommand implements Command {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

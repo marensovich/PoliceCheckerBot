@@ -20,6 +20,7 @@ public class AdminGiveSubscribeCommand implements Command {
 
     @Override
     public void execute(Update update) {
+        TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         String messageText = update.getMessage().getText();
         String[] parts = messageText.split(" ");
 
@@ -33,6 +34,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -46,6 +48,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException e){
                 throw new RuntimeException(e);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -62,6 +65,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 throw new RuntimeException(ex);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
@@ -79,10 +83,11 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 throw new RuntimeException(ex);
             }
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             return;
         }
 
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
         databaseManager.addSub(target_id, subscribeType);
 
         Timestamp expAt = databaseManager.getExpAtForUser(target_id);
@@ -95,14 +100,16 @@ public class AdminGiveSubscribeCommand implements Command {
             formattedDate = "неизвестна";
         }
 
-        String notif = "🎉 Ваша подписка успешно обновлена! 🎉\n\n" +
-                "Статус вашей подписки теперь активен до *" + formattedDate + "*.\n\n" +
-                "Благодарим за доверие!\n" +
-                "Если у вас есть вопросы или потребуется помощь — обращайтесь к @marensovich";
+        String notif = """
+                🎉 Ваша подписка успешно обновлена! 🎉
+                Статус вашей подписки теперь активен до *%formattedDate%*.
+                Благодарим за доверие!
+                Если у вас есть вопросы или потребуется помощь — обращайтесь в сообщения канала.
+                """;
 
         SendMessage replyMessage = new SendMessage();
         replyMessage.setChatId(target_id);
-        replyMessage.setText(notif);
+        replyMessage.setText(notif.replace("%formattedDate%", formattedDate));
         replyMessage.enableMarkdown(true);
 
         try {
@@ -110,5 +117,6 @@ public class AdminGiveSubscribeCommand implements Command {
         } catch (TelegramApiException e){
             throw new RuntimeException(e);
         }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
     }
 }

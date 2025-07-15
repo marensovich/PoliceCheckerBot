@@ -12,10 +12,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CommandManager {
     private final Map<String, Command> commands = new HashMap<>();
     private final Map<String, Command> adminCommands = new HashMap<>();
+    private final Map<Long, Command> activeCommands = new HashMap<>();
 
     public CommandManager() {
         registerCommands();
@@ -31,6 +33,7 @@ public class CommandManager {
         register(new GetIDCommand());
         register(new UserInfoCommand());
         register(new AddPostCommand());
+        register(new CancelCommand());
 
         registerAdmin(new AdminGiveSubscribeCommand());
         registerAdmin(new AdminRemoveSubscribeCommand());
@@ -46,16 +49,47 @@ public class CommandManager {
     }
 
     public boolean executeCommand(Update update) {
+        long userId = update.getMessage().getFrom().getId();
+
+        if (update.hasMessage() && !update.getMessage().hasText()) {
+            Command activeCommand = activeCommands.get(userId);
+            activeCommand.execute(update);
+            return true;
+
+        } else if (hasActiveCommand(userId)) {
+            Command activeCommand = activeCommands.get(userId);
+            if (activeCommand instanceof AddPostCommand) {
+                AddPostCommand addPostCommand = (AddPostCommand) activeCommand;
+                AddPostCommand.UserState state = addPostCommand.getUserState(userId);
+                if (state.isAwaitingComment()){
+                    activeCommand.execute(update);
+                }
+            } else {
+                String reply = """
+                        Бот обрабатывает отправленную вами команду %command%
+        
+                        В случае если это вы хотите прекратить выполнение команды - отправьте /cancel
+                        """;
+                SendMessage msg = new SendMessage();
+                msg.setChatId(update.getMessage().getChatId());
+                msg.setText(reply.replace("%command%", getActiveCommand(userId).getName()));
+                try {
+                    TelegramBot.getInstance().execute(msg);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
         String messageText = update.getMessage().getText().trim();
         String[] parts = messageText.split(" ");
         String commandKey = parts[0];
 
-        Long userId = update.getMessage().getFrom().getId();
-        DatabaseManager databaseManager = TelegramBot.getInstance().getDatabaseManager();
+        DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
 
         boolean isRegistered = databaseManager.checkUsersExists(userId);
 
-        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help")) {
+        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help") && !commandKey.equals("/cancel")) {
             SendMessage msg = new SendMessage();
             msg.setChatId(update.getMessage().getChatId());
             msg.setText("Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
@@ -66,7 +100,6 @@ public class CommandManager {
             }
             return true;
         }
-
         if (adminCommands.containsKey(commandKey)) {
             if (!databaseManager.checkUserIsAdmin(userId)) {
                 SendMessage sendMessage = new SendMessage();
@@ -86,7 +119,6 @@ public class CommandManager {
             }
             return false;
         }
-
         Command command = commands.get(commandKey);
         if (command != null) {
             command.execute(update);
@@ -95,4 +127,27 @@ public class CommandManager {
             return false;
         }
     }
+
+    public void setActiveCommand(Long userId, Command command) {
+        System.out.println("Команда " + command.getName() + " закреплена за пользователем " + userId);
+        activeCommands.put(userId, command);
+    }
+
+    public void unsetActiveCommand(Long userId) {
+        System.out.println("Команда, закрепленная за пользователем " + userId + " удалена");
+        activeCommands.remove(userId);
+    }
+
+    public boolean hasActiveCommand(Long userId) {
+        return activeCommands.containsKey(userId);
+    }
+
+    public Command getActiveCommand(Long userId) {
+        return activeCommands.get(userId);
+    }
+
+    public Optional<Command> getActiveCommands(Long userId) {
+        return Optional.ofNullable(activeCommands.get(userId));
+    }
+
 }
