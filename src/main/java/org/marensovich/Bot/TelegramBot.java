@@ -6,8 +6,11 @@ import org.marensovich.Bot.CommandsManager.CommandManager;
 import org.marensovich.Bot.UpdateManager.UpdateHandler;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.InputStream;
 
 public class TelegramBot extends TelegramLongPollingBot {
 
@@ -27,12 +30,24 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     public static DatabaseManager getDatabaseManager() { return instance.databaseManager; }
+    //public static CommandManager getCommandManager() { return instance.comma; }
 
     @Override
     public void onUpdateReceived(Update update) {
         UpdateHandler updateHandler = new UpdateHandler();
         updateHandler.updateHandler(update);
     }
+
+    public InputFile getPhotoFromResources(String filename) {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filename);
+        if (inputStream == null) {
+            throw new IllegalArgumentException("File not found in resources: " + filename);
+        }
+        InputFile inputFile = new InputFile();
+        inputFile.setMedia(inputStream, filename);
+        return inputFile;
+    }
+
     @Override
     public String getBotUsername() {
         return Dotenv.load().get("TELEGRAM_BOT_USERNAME");

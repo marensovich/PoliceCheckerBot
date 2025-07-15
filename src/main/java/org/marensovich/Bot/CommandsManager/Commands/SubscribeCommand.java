@@ -1,8 +1,10 @@
 package org.marensovich.Bot.CommandsManager.Commands;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -29,13 +31,8 @@ public class SubscribeCommand implements Command {
                 "\uD83D\uDE80 *Premium-подписка* — всего за 999 рублей.  \n" +
                 "Это расширенный пакет с [преимущества Premium], который откроет перед вами дополнительные возможности и обеспечит лучший опыт работы с ботом.  \n" +
                 "\n" +
-                "*Для покупки подписки свяжитесь с пользователем: @marensovich. Начинайте сообщение с пересылки ответа бота на команду /getID, так диалог пойдет проще и быстрее.*  \n" +
+                "*Для покупки обратитесь в сообщения канала. Начинайте сообщение с копирования ответа бота на команду /getID, так диалог пойдет проще и быстрее.*  \n" +
                 "Выберите подходящий тариф и наслаждайтесь всеми преимуществами! Если есть вопросы — пишите, мы всегда рады помочь!";
-
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(update.getMessage().getChatId().toString());
-        sendMessage.setParseMode("Markdown");
-        sendMessage.setText(reply);
 
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
@@ -44,15 +41,21 @@ public class SubscribeCommand implements Command {
         List<InlineKeyboardButton> checkRow = new ArrayList<>();
         InlineKeyboardButton checkButton = new InlineKeyboardButton();
         checkButton.setText("✔ Написать");
-        checkButton.setUrl("https://t.me/marensovich");
+        checkButton.setUrl(Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK"));
         checkRow.add(checkButton);
         keyboard.add(checkRow);
 
         keyboardMarkup.setKeyboard(keyboard);
-        sendMessage.setReplyMarkup(keyboardMarkup);
+
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setChatId(update.getMessage().getChatId().toString());
+        sendPhoto.setCaption(reply);
+        sendPhoto.setParseMode("Markdown");
+        sendPhoto.setReplyMarkup(keyboardMarkup);
+        sendPhoto.setPhoto(TelegramBot.getInstance().getPhotoFromResources("images/buy_sub_photo.jpg"));
 
         try {
-            TelegramBot.getInstance().execute(sendMessage);
+            TelegramBot.getInstance().execute(sendPhoto);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
