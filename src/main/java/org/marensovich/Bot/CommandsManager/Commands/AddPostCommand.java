@@ -45,7 +45,6 @@ public class AddPostCommand implements Command {
         } else if (update.hasCallbackQuery()) {
             chatId = update.getCallbackQuery().getMessage().getChatId();
         }
-
         UserSession session = userSessions.getOrDefault(userId, new UserSession());
         userSessions.put(userId, session);
 
