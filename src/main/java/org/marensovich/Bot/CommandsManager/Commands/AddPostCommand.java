@@ -283,8 +283,9 @@ public class AddPostCommand implements Command {
         System.out.printf(
                 "Создан пост: userId=%d, type=%s, lat=%.6f, lon=%.6f, comment=%s%n",
                 userId, postType, location.getLatitude(), location.getLongitude(),
-                comment != null ? comment : "null"
+                comment
         );
+        TelegramBot.getDatabaseManager().addPolicePost(userId, location, postType, comment);
     }
 
     private void sendSuccessMessage(Long chatId) throws TelegramApiException {

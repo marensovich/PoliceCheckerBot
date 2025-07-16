@@ -3,6 +3,7 @@ package org.marensovich.Bot;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.Data.SubscribeTypes;
 import org.marensovich.Bot.Data.UserInfo;
+import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;
 import java.time.Instant;
@@ -59,10 +60,11 @@ public class DatabaseManager {
                 )""";
         String CREATE_POLICE_DATA_TABLE_SQL = """
                 CREATE TABLE IF NOT EXISTS Police (
-                    id BIGINT PRIMARY KEY,
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
                     user_id BIGINT NOT NULL,
-                    latitude FLOAT NOT NULL,
-                    longitude FLOAT NOT NULL,
+                    latitude DOUBLE NOT NULL,
+                    longitude DOUBLE NOT NULL,
+                    post_type VARCHAR(20) NOT NULL,
                     registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     comment TEXT
                 )""";
@@ -310,4 +312,20 @@ public class DatabaseManager {
         }
         return null;
     }
+
+    public void addPolicePost(Long userId, Location location, String postType, String comment){
+        String SQL = "INSERT INTO Police (user_id, latitude, longitude, post_type, comment) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)){
+            stmt.setLong(1, userId);
+            stmt.setDouble(2, location.getLatitude());
+            stmt.setDouble(3, location.getLongitude());
+            stmt.setString(4, postType);
+            stmt.setString(5, comment);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Не удалось добавить пост", e);
+        }
+    }
+
 }
