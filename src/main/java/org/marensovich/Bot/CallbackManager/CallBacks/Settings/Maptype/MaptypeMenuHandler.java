@@ -1,4 +1,4 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.Settings;
+package org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
@@ -6,10 +6,10 @@ import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class LangUkUaHandler implements TelegramCallbackHandler {
+public class MaptypeMenuHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return SettingsCommand.CALLBACK_LANG_UK_UA;
+        return SettingsCommand.CALLBACK_MAPTYPE;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class LangUkUaHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handleOptionSelected(update, "lang", "uk_UA");
+            command.handleMapTypeCallback(update);
         }
     }
 }

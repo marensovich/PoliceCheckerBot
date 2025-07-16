@@ -1,4 +1,4 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.Settings;
+package org.marensovich.Bot.CallbackManager.CallBacks.Settings.Lang;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
@@ -6,10 +6,10 @@ import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class ThemeDarkHandler implements TelegramCallbackHandler {
+public class LangMenuHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return SettingsCommand.CALLBACK_THEME_DARK;
+        return SettingsCommand.CALLBACK_LANG;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class ThemeDarkHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handleOptionSelected(update, "theme", "dark");
+            command.handleLangCallback(update);
         }
     }
 }

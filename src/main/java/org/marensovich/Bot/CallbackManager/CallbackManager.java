@@ -3,6 +3,11 @@ package org.marensovich.Bot.CallbackManager;
 import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.CheckSubscriptionHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.*;
+import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Lang.*;
+import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype.*;
+import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeDarkHandler;
+import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeLightHandler;
+import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeMenuHandler;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 

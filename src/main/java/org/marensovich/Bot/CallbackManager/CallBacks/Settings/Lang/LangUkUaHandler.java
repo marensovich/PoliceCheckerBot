@@ -1,4 +1,4 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.Settings;
+package org.marensovich.Bot.CallbackManager.CallBacks.Settings.Lang;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
@@ -6,10 +6,10 @@ import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class LangMenuHandler implements TelegramCallbackHandler {
+public class LangUkUaHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return SettingsCommand.CALLBACK_LANG;
+        return SettingsCommand.CALLBACK_LANG_UK_UA;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class LangMenuHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handleLangCallback(update);
+            command.handleOptionSelected(update, "lang", "uk_UA");
         }
     }
 }

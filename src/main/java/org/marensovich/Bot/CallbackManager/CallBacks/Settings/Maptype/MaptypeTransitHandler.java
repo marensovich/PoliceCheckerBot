@@ -1,4 +1,4 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.Settings;
+package org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
@@ -6,10 +6,10 @@ import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class LangRuRuHandler implements TelegramCallbackHandler {
+public class MaptypeTransitHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return SettingsCommand.CALLBACK_LANG_RU_RU;
+        return SettingsCommand.CALLBACK_MAPTYPE_TRANSIT;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class LangRuRuHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handleOptionSelected(update, "lang", "ru_RU");
+            command.handleOptionSelected(update, "maptype", "transit");
         }
     }
 }

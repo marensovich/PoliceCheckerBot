@@ -1,4 +1,4 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.Settings;
+package org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
@@ -6,10 +6,10 @@ import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class MaptypeTransitHandler implements TelegramCallbackHandler {
+public class MaptypeDrivingHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return SettingsCommand.CALLBACK_MAPTYPE_TRANSIT;
+        return SettingsCommand.CALLBACK_MAPTYPE_DRIVING;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class MaptypeTransitHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handleOptionSelected(update, "maptype", "transit");
+            command.handleOptionSelected(update, "maptype", "driving");
         }
     }
 }
