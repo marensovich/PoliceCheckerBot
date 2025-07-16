@@ -23,7 +23,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.databaseManager = databaseManager;
         this.commandManager = new CommandManager();
         this.callbackManager = new CallbackManager();
-        CallbackManager callbackManager = new CallbackManager();
         instance = this;
     }
 
@@ -32,17 +31,11 @@ public class TelegramBot extends TelegramLongPollingBot {
         return instance;
     }
 
-    public static DatabaseManager getDatabaseManager() {
-        return instance.databaseManager;
-    }
+    public static DatabaseManager getDatabaseManager() { return instance.databaseManager; }
 
-    public CallbackManager getCallbackManager() {
-        return callbackManager;
-    }
+    public CallbackManager getCallbackManager() { return callbackManager; }
 
-    public CommandManager getCommandManager() {
-        return commandManager;
-    }
+    public CommandManager getCommandManager() { return commandManager; }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -65,12 +58,8 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @Override
-    public String getBotUsername() {
-        return Dotenv.load().get("TELEGRAM_BOT_USERNAME");
-    }
+    public String getBotUsername() { return Dotenv.load().get("TELEGRAM_BOT_USERNAME"); }
 
     @Override
-    public String getBotToken() {
-        return Dotenv.load().get("TELEGRAM_BOT_TOKEN");
-    }
+    public String getBotToken() { return Dotenv.load().get("TELEGRAM_BOT_TOKEN"); }
 }
