@@ -2,6 +2,7 @@ package org.marensovich.Bot.CommandsManager;
 
 import org.marensovich.Bot.CommandsManager.Commands.*;
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminGiveSubscribeCommand;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminNewsCommand;
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminRemoveSubscribeCommand;
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminUserInfoCommand;
 import org.marensovich.Bot.DatabaseManager;
@@ -38,6 +39,7 @@ public class CommandManager {
         registerAdmin(new AdminGiveSubscribeCommand());
         registerAdmin(new AdminRemoveSubscribeCommand());
         registerAdmin(new AdminUserInfoCommand());
+        registerAdmin(new AdminNewsCommand());
     }
 
     private void register(Command command) {
