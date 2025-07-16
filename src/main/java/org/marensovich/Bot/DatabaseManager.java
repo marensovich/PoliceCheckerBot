@@ -442,7 +442,7 @@ public class DatabaseManager {
         }
     }
 
-    public long[] getAllUsersIDs() {
+    public long[] getAllUsersTableIDs() {
         String query = "SELECT user_id FROM All_Users";
         List<Long> userIds = new ArrayList<>();
 
@@ -481,11 +481,10 @@ public class DatabaseManager {
     }
 
 
-    public long[] getUniqueUserIDs() {
+    public long[] getAllUsers() {
         Set<Long> uniqueIds = new HashSet<>();
 
         try (Connection connection = getConnection()) {
-            // Из All_Users
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery("SELECT user_id FROM All_Users")) {
                 while (rs.next()) {
@@ -493,7 +492,6 @@ public class DatabaseManager {
                 }
             }
 
-            // Из Users
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery("SELECT user_id FROM Users")) {
                 while (rs.next()) {
