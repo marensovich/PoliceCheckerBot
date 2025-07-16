@@ -63,6 +63,28 @@ public class CommandManager {
                 AddPostCommand.UserState state = addPostCommand.getUserState(userId);
                 if (state.isAwaitingComment()){
                     activeCommand.execute(update);
+                    return true;
+                }
+            } else if (update.getMessage().hasText()) {
+                if (update.getMessage().getText().equals("/cancel")){
+                    CancelCommand cancelCommand = new CancelCommand();
+                    cancelCommand.execute(update);
+                    return true;
+                } else {
+                    String reply = """
+                        Бот обрабатывает отправленную вами команду %command%
+        
+                        В случае если это вы хотите прекратить выполнение команды - отправьте /cancel
+                        """;
+                    SendMessage msg = new SendMessage();
+                    msg.setChatId(update.getMessage().getChatId());
+                    msg.setText(reply.replace("%command%", getActiveCommand(userId).getName()));
+                    try {
+                        TelegramBot.getInstance().execute(msg);
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return true;
                 }
             } else {
                 String reply = """
@@ -78,6 +100,7 @@ public class CommandManager {
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
+                return true;
             }
         }
 
