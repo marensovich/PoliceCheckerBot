@@ -97,12 +97,10 @@ public class SettingsCommand implements Command {
     private void getSettings(long userId) {
         Map<String, String> settings = TelegramBot.getDatabaseManager().getUserSettings(userId);
 
-        // Получаем API-значения из базы
         currentApiTheme = settings.getOrDefault("yandex_theme", "light");
         currentApiMapType = settings.getOrDefault("yandex_maptype", "map");
         currentApiLang = settings.getOrDefault("yandex_lang", "ru_RU");
 
-        // Находим соответствующие displayName
         currentDisplayTheme = THEMES.stream()
                 .filter(theme -> theme.apiValue().equals(currentApiTheme))
                 .findFirst()
@@ -136,13 +134,11 @@ public class SettingsCommand implements Command {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        // Получаем текущие значения из базы
         Map<String, String> dbSettings = TelegramBot.getDatabaseManager().getUserSettings(userId);
         String dbTheme = dbSettings.getOrDefault("yandex_theme", "light");
         String dbMapType = dbSettings.getOrDefault("yandex_maptype", "map");
         String dbLang = dbSettings.getOrDefault("yandex_lang", "ru_RU");
 
-        // Проверяем, были ли изменения
         String currentThemeApi = THEMES.stream()
                 .filter(t -> t.displayName().equals(currentDisplayTheme))
                 .findFirst()
@@ -161,33 +157,28 @@ public class SettingsCommand implements Command {
                 .map(LangOption::apiValue)
                 .orElse("map");
 
-        // Проверяем изменения по API-значениям
         boolean hasChanges = !dbTheme.equals(currentThemeApi)
                 || !dbMapType.equals(currentMapTypeApi)
                 || !dbLang.equals(currentLangApi);
 
-        // Кнопка выбора темы
         List<InlineKeyboardButton> themeRow = new ArrayList<>();
         InlineKeyboardButton themeButton = new InlineKeyboardButton("Тема");
         themeButton.setCallbackData(CALLBACK_THEME);
         themeRow.add(themeButton);
         rows.add(themeRow);
 
-        // Кнопка выбора типа карты
         List<InlineKeyboardButton> mapTypeRow = new ArrayList<>();
         InlineKeyboardButton mapTypeButton = new InlineKeyboardButton("Тип карты");
         mapTypeButton.setCallbackData(CALLBACK_MAPTYPE);
         mapTypeRow.add(mapTypeButton);
         rows.add(mapTypeRow);
 
-        // Кнопка выбора языка
         List<InlineKeyboardButton> langRow = new ArrayList<>();
         InlineKeyboardButton langButton = new InlineKeyboardButton("Язык");
         langButton.setCallbackData(CALLBACK_LANG);
         langRow.add(langButton);
         rows.add(langRow);
 
-        // Добавляем кнопку "Сохранить" только если есть изменения
         if (hasChanges) {
             List<InlineKeyboardButton> saveRow = new ArrayList<>();
             InlineKeyboardButton saveButton = new InlineKeyboardButton("✅ Сохранить");
@@ -227,7 +218,6 @@ public class SettingsCommand implements Command {
             rows.add(row);
         }
 
-        // Кнопка назад
         List<InlineKeyboardButton> backRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton("← Назад");
         backButton.setCallbackData(CALLBACK_BACK);
@@ -274,7 +264,6 @@ public class SettingsCommand implements Command {
             rows.add(row);
         }
 
-        // Кнопка назад
         List<InlineKeyboardButton> backRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton("← Назад");
         backButton.setCallbackData(CALLBACK_BACK);
@@ -310,7 +299,7 @@ public class SettingsCommand implements Command {
             rows.add(row);
         }
 
-        // Кнопка назад
+
         List<InlineKeyboardButton> backRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton("← Назад");
         backButton.setCallbackData(CALLBACK_BACK);
