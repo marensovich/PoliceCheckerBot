@@ -2,8 +2,8 @@ package org.marensovich.Bot.YandexMapAPI.YandexData;
 
 public enum YandexMapTheme {
 
-    Light("light"),
-    Dark("dark");
+    light("light"),
+    dark("dark");
 
     private final String theme;
 

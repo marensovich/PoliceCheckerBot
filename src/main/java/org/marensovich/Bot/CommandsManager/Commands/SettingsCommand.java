@@ -214,11 +214,14 @@ public class SettingsCommand implements Command {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-
         for (ThemeOption option : THEMES) {
             List<InlineKeyboardButton> row = new ArrayList<>();
-
-            InlineKeyboardButton button = new InlineKeyboardButton(option.displayName() + (option.apiValue().equals(currentApiTheme) ? " ✓" : ""));
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            if (option.apiValue().equals(currentApiTheme)) {
+                button.setText(option.displayName() + " ✓");
+            } else {
+                button.setText(option.displayName());
+            }
             button.setCallbackData(option.callback());
             row.add(button);
             rows.add(row);
@@ -328,12 +331,28 @@ public class SettingsCommand implements Command {
     }
 
     public void handleBackCallback(Update update) throws TelegramApiException {
+        long userId = update.getCallbackQuery().getFrom().getId();
+
+        saveCurrentSettings(userId);
+
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
-        editMessage.setText(getSettingsText(update.getCallbackQuery().getMessage().getChatId()));
-        editMessage.setReplyMarkup(getSettingsKeyboard(update.getCallbackQuery().getMessage().getChatId()));
+        editMessage.setText(getSettingsText(userId));
+        editMessage.setReplyMarkup(getSettingsKeyboard(userId));
         TelegramBot.getInstance().execute(editMessage);
+    }
+
+    private void saveCurrentSettings(long userId) {
+        try {
+            YandexMapTheme theme = YandexMapTheme.valueOf(currentApiTheme);
+            YandexMapTypes mapType = YandexMapTypes.valueOf(currentApiMapType);
+            YandexMapLanguage lang = YandexMapLanguage.valueOf(currentApiLang);
+
+            TelegramBot.getDatabaseManager().updateUserSettings(userId, theme, mapType, lang);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -355,15 +374,30 @@ public class SettingsCommand implements Command {
     public void handleOptionSelected(Update update, String optionType, String optionValue) throws TelegramApiException {
         switch (optionType) {
             case "theme" -> {
-                currentDisplayTheme = optionValue;
+                currentApiTheme = optionValue;
+                currentDisplayTheme = THEMES.stream()
+                        .filter(theme -> theme.apiValue().equals(currentApiTheme))
+                        .findFirst()
+                        .map(ThemeOption::displayName)
+                        .orElse("Светлая");
                 handleThemeCallback(update);
             }
             case "maptype" -> {
-                currentDisplayMapType = optionValue;
+                currentApiMapType = optionValue;
+                currentDisplayMapType = MAP_TYPES.stream()
+                        .filter(map -> map.apiValue().equals(currentApiMapType))
+                        .findFirst()
+                        .map(MapOption::displayName)
+                        .orElse("Обычная карта");
                 handleMapTypeCallback(update);
             }
             case "lang" -> {
-                currentDisplayLang = optionValue;
+                currentApiLang = optionValue;
+                currentDisplayLang = LANGUAGES.stream()
+                        .filter(lang -> lang.apiValue().equals(currentApiLang))
+                        .findFirst()
+                        .map(LangOption::displayName)
+                        .orElse("Русский язык");
                 handleLangCallback(update);
             }
         }
