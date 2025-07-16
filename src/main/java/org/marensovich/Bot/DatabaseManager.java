@@ -3,10 +3,15 @@ package org.marensovich.Bot;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.Data.SubscribeTypes;
 import org.marensovich.Bot.Data.UserInfo;
+import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapLanguage;
+import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapTheme;
+import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapTypes;
 import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DatabaseManager {
     private static final Dotenv dotenv = Dotenv.load();
@@ -325,6 +330,116 @@ public class DatabaseManager {
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Не удалось добавить пост", e);
+        }
+    }
+
+
+    public void setUserYandexLang(long userId, YandexMapLanguage yandexMapLanguage){
+        String SQL = "UPDATE Users SET yandex_lang = ? WHERE user_id = ?";
+            try (Connection conn = getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(SQL)) {
+
+                stmt.setString(1, yandexMapLanguage.getLang());
+                stmt.setLong(2, userId);
+                int rowsUpdated = stmt.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    System.out.println("Настройки пользователя " + userId + " успешно обновлены.");
+                    conn.commit();
+                } else {
+                    System.out.println("Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                    conn.rollback();
+                }
+            } catch (SQLException e){
+                throw new RuntimeException("Не удалось обновить настройки", e);
+            }
+    }
+
+    public void setUserYandexTheme(long userId, YandexMapTheme yandexMapTheme){
+        String SQL = "UPDATE Users SET yandex_lang = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+
+            stmt.setString(1, yandexMapTheme.getTheme());
+            stmt.setLong(2, userId);
+            int rowsUpdated = stmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Настройки пользователя " + userId + " успешно обновлены.");
+                conn.commit();
+            } else {
+                System.out.println("Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                conn.rollback();
+            }
+        } catch (SQLException e){
+            throw new RuntimeException("Не удалось обновить настройки", e);
+        }
+    }
+
+    public void setUserYandexMapType(long userId, YandexMapTypes yandexMapType){
+        String SQL = "UPDATE Users SET yandex_lang = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+
+            stmt.setString(1, yandexMapType.getType());
+            stmt.setLong(2, userId);
+            int rowsUpdated = stmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Настройки пользователя " + userId + " успешно обновлены.");
+                conn.commit();
+            } else {
+                System.out.println("Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                conn.rollback();
+            }
+        } catch (SQLException e){
+            throw new RuntimeException("Не удалось обновить настройки", e);
+        }
+    }
+
+    public Map<String, String> getUserSettings(long userId) {
+        Map<String, String> settings = new HashMap<>();
+        String query = "SELECT yandex_lang, yandex_theme, yandex_maptype FROM Users WHERE user_id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setLong(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                settings.put("yandex_lang", resultSet.getString("yandex_lang"));
+                settings.put("yandex_theme", resultSet.getString("yandex_theme"));
+                settings.put("yandex_maptype", resultSet.getString("yandex_maptype"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return settings;
+    }
+
+    public void updateUserSetting(long userid, String setting, String value){
+        String sql = "UPDATE Users SET " + setting + " = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, value);
+            stmt.setLong(2, userid);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateUserSettings(long userId, YandexMapTheme currentTheme, YandexMapTypes currentMapType, YandexMapLanguage currentLang){
+        String sql = "UPDATE Users SET yandex_theme = ?, yandex_maptype = ?, yandex_lang = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, currentTheme.getTheme());
+            stmt.setString(2, currentMapType.getType());
+            stmt.setString(3, currentLang.getLang());
+            stmt.setLong(4, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

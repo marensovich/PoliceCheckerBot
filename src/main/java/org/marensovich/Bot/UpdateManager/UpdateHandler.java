@@ -16,6 +16,7 @@ public class UpdateHandler {
                 }
                 if (TelegramBot.getInstance().getCommandManager().hasActiveCommand(update.getMessage().getFrom().getId())){
                     TelegramBot.getInstance().getCommandManager().executeCommand(update);
+                    return;
                 }
                 if (update.getMessage().hasText()){
                     if (update.getMessage().getText().startsWith("/")){

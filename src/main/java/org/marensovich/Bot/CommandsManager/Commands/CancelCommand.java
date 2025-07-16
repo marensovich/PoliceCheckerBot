@@ -24,6 +24,7 @@ public class CancelCommand implements Command {
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
+            return;
         }
         SendMessage msg = new SendMessage();
         msg.setChatId(update.getMessage().getChatId().toString());

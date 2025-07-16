@@ -24,7 +24,7 @@ public class TestCommand implements Command {
             YandexMaps yandexMaps = new YandexMaps();
             InputStream is = yandexMaps.getPhoto(36.946066f, 55.389249f, 0.05f, null,
                     18, YandexMapSize.Large, YandexMapScale.SCALE_1, null, null,
-                    YandexMapLanguage.ru_RU, null, YandexMapTheme.Dark, YandexMapTypes.transit);
+                    YandexMapLanguage.ru_RU, null, YandexMapTheme.dark, YandexMapTypes.transit);
 
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setChatId(update.getMessage().getChatId().toString());
