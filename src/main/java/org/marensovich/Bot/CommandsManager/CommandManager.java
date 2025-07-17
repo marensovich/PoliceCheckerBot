@@ -62,8 +62,13 @@ public class CommandManager {
             Command activeCommand = activeCommands.get(userId);
             if (activeCommand instanceof AddPostCommand) {
                 AddPostCommand addPostCommand = (AddPostCommand) activeCommand;
-                AddPostCommand.UserState state = addPostCommand.getUserState(userId);
-                if (state.isAwaitingComment()){
+                if (addPostCommand.getUserState(userId).isAwaitingComment()){
+                    activeCommand.execute(update);
+                    return true;
+                }
+            } else if (activeCommand instanceof AdminNewsCommand) {
+                AdminNewsCommand adminNewsCommand = (AdminNewsCommand) activeCommand;
+                if (adminNewsCommand.getUserState(userId).isAwaitingText()){
                     activeCommand.execute(update);
                     return true;
                 }
@@ -114,7 +119,12 @@ public class CommandManager {
 
         boolean isRegistered = databaseManager.checkUsersExists(userId);
 
-        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help") && !commandKey.equals("/cancel")) {
+        if (!isRegistered &&
+                !commandKey.equals("/start") &&
+                !commandKey.equals("/help") &&
+                !commandKey.equals("help") &&
+                !commandKey.equals("/cancel") &&
+                !commandKey.equals("/reg")) {
             SendMessage msg = new SendMessage();
             msg.setChatId(update.getMessage().getChatId());
             msg.setText("Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
