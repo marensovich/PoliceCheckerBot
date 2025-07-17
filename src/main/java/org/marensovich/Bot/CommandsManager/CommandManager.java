@@ -2,6 +2,7 @@ package org.marensovich.Bot.CommandsManager;
 
 import org.marensovich.Bot.CommandsManager.Commands.*;
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminGiveSubscribeCommand;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminNewsCommand;
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminRemoveSubscribeCommand;
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminUserInfoCommand;
 import org.marensovich.Bot.DatabaseManager;
@@ -38,6 +39,7 @@ public class CommandManager {
         registerAdmin(new AdminGiveSubscribeCommand());
         registerAdmin(new AdminRemoveSubscribeCommand());
         registerAdmin(new AdminUserInfoCommand());
+        registerAdmin(new AdminNewsCommand());
     }
 
     private void register(Command command) {
@@ -60,8 +62,13 @@ public class CommandManager {
             Command activeCommand = activeCommands.get(userId);
             if (activeCommand instanceof AddPostCommand) {
                 AddPostCommand addPostCommand = (AddPostCommand) activeCommand;
-                AddPostCommand.UserState state = addPostCommand.getUserState(userId);
-                if (state.isAwaitingComment()){
+                if (addPostCommand.getUserState(userId).isAwaitingComment()){
+                    activeCommand.execute(update);
+                    return true;
+                }
+            } else if (activeCommand instanceof AdminNewsCommand) {
+                AdminNewsCommand adminNewsCommand = (AdminNewsCommand) activeCommand;
+                if (adminNewsCommand.getUserState(userId).isAwaitingText()){
                     activeCommand.execute(update);
                     return true;
                 }
@@ -112,7 +119,12 @@ public class CommandManager {
 
         boolean isRegistered = databaseManager.checkUsersExists(userId);
 
-        if (!isRegistered && !commandKey.equals("/start") && !commandKey.equals("/help") && !commandKey.equals("help") && !commandKey.equals("/cancel")) {
+        if (!isRegistered &&
+                !commandKey.equals("/start") &&
+                !commandKey.equals("/help") &&
+                !commandKey.equals("help") &&
+                !commandKey.equals("/cancel") &&
+                !commandKey.equals("/reg")) {
             SendMessage msg = new SendMessage();
             msg.setChatId(update.getMessage().getChatId());
             msg.setText("Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");

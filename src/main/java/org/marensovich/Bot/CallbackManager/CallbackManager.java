@@ -2,6 +2,7 @@ package org.marensovich.Bot.CallbackManager;
 
 import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.CheckSubscriptionHandler;
+import org.marensovich.Bot.CallbackManager.CallBacks.News.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Lang.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype.*;
@@ -53,6 +54,15 @@ public class CallbackManager {
         register(new ThemeMenuHandler());
         register(new MaptypeMenuHandler());
         register(new LangMenuHandler());
+
+
+        // Обработчики команды /news
+
+        register(new CancelHandler());
+        register(new ConfirmHandler());
+        register(new Type1Handler());
+        register(new Type2Handler());
+        register(new Type3Handler());
 
     }
 

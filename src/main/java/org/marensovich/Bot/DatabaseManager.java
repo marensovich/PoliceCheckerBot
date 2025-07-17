@@ -10,8 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DatabaseManager {
     private static final Dotenv dotenv = Dotenv.load();
@@ -441,6 +440,71 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public long[] getAllUsersTableIDs() {
+        String query = "SELECT user_id FROM All_Users";
+        List<Long> userIds = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+                userIds.add(resultSet.getLong("user_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new long[0];
+        }
+
+        return userIds.stream().mapToLong(Long::longValue).toArray();
+    }
+
+    public long[] getUsersTableIDs() {
+        String query = "SELECT user_id FROM Users";
+        List<Long> userIds = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+                userIds.add(resultSet.getLong("user_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new long[0];
+        }
+
+        return userIds.stream().mapToLong(Long::longValue).toArray();
+    }
+
+
+    public long[] getAllUsers() {
+        Set<Long> uniqueIds = new HashSet<>();
+
+        try (Connection connection = getConnection()) {
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT user_id FROM All_Users")) {
+                while (rs.next()) {
+                    uniqueIds.add(rs.getLong("user_id"));
+                }
+            }
+
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT user_id FROM Users")) {
+                while (rs.next()) {
+                    uniqueIds.add(rs.getLong("user_id"));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new long[0];
+        }
+
+        return uniqueIds.stream().mapToLong(Long::longValue).toArray();
     }
 
 }
