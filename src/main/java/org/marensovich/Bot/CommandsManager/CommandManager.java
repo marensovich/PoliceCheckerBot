@@ -8,6 +8,7 @@ import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminUserInfoC
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -35,6 +36,7 @@ public class CommandManager {
         register(new UserInfoCommand());
         register(new AddPostCommand());
         register(new CancelCommand());
+        register(new GetPostCommand());
 
         registerAdmin(new AdminGiveSubscribeCommand());
         registerAdmin(new AdminRemoveSubscribeCommand());
@@ -53,11 +55,13 @@ public class CommandManager {
     public boolean executeCommand(Update update) {
         long userId = update.getMessage().getFrom().getId();
 
-        if (update.hasMessage() && !update.getMessage().hasText()) {
-            Command activeCommand = activeCommands.get(userId);
-            activeCommand.execute(update);
-            return true;
 
+        if (update.hasMessage() && update.getMessage().hasLocation()){
+            if (!hasActiveCommand(userId)){
+                GetPostCommand getPostCommand = new GetPostCommand();
+                getPostCommand.executeLocation(update, update.getMessage().getLocation());
+                return true;
+            }
         } else if (hasActiveCommand(userId)) {
             Command activeCommand = activeCommands.get(userId);
             if (activeCommand instanceof AddPostCommand) {

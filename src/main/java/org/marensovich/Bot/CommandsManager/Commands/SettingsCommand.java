@@ -2,9 +2,9 @@ package org.marensovich.Bot.CommandsManager.Commands;
 
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
-import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapLanguage;
-import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapTheme;
-import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapTypes;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapLanguage;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTypes;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;

@@ -1,5 +1,6 @@
-package org.marensovich.Bot.YandexMapAPI;
+package org.marensovich.Bot.Maps.YandexMapAPI;
 
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
 import org.marensovich.Bot.YandexMapAPI.YandexData.*;
 
 import javax.imageio.ImageIO;

@@ -3,9 +3,9 @@ package org.marensovich.Bot;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.Data.SubscribeTypes;
 import org.marensovich.Bot.Data.UserInfo;
-import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapLanguage;
-import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapTheme;
-import org.marensovich.Bot.YandexMapAPI.YandexData.YandexMapTypes;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapLanguage;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTypes;
 import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;

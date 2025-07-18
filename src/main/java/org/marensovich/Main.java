@@ -15,7 +15,6 @@ public class Main {
         try {
             System.setOut(new PrintStream(System.out, true, "UTF-8"));
 
-            System.out.println("12321123123231");
             DatabaseManager databaseManager = new DatabaseManager();
             if (!databaseManager.testConnection()){
                 System.out.println("Не удалось подключиться к базе данных!");
