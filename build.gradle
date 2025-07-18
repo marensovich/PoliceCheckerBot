@@ -1,10 +1,8 @@
-
 plugins {
     id 'java'
     id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
-
-mainClassName = 'org.marensovich.Main'
 
 group = 'org.marensovich'
 version = '1.0-SNAPSHOT'
@@ -13,30 +11,33 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
-
     implementation("org.telegram:telegrambots:6.9.7.1")
-
     implementation("com.google.code.gson:gson:2.10.1")
-
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
     implementation("com.mysql:mysql-connector-j:9.2.0")
-
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
-
 }
 
-tasks.jar {
+application {
+    mainClass = 'org.marensovich.Main'
+}
+
+shadowJar {
+    archiveBaseName.set('TelegramBot')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    mergeServiceFiles()
     manifest {
-        attributes["Main-Class"] = "org.marensovich.Main"
+        attributes 'Main-Class': 'org.marensovich.Main'
     }
 }
 
 test {
     useJUnitPlatform()
 }
+
+build.dependsOn shadowJar
