@@ -1,8 +1,7 @@
-package org.marensovich.Bot.Maps.YandexMapAPI;
+package org.marensovich.Bot.Maps.YandexMapAPI.Utils;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
-import org.marensovich.Bot.YandexMapAPI.YandexData.*;
 
 public class YandexMapsURL {
 
