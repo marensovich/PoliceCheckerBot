@@ -9,8 +9,19 @@ public class Distance {
         throw new AssertionError("Нельзя создать экземпляр утилитарного класса");
     }
 
+    /**
+     * Радиус земли
+     */
     private static final double EARTH_RADIUS_KM = 6371.0;
 
+    /**
+     * Метод для подсчета расстояния между 2 точками
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
+     * @return
+     */
     private static double calcDist(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
@@ -23,6 +34,14 @@ public class Distance {
         return EARTH_RADIUS_KM * c;
     }
 
+    /**
+     * Вывод результата в виде форматированной строки
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
+     * @return
+     */
     public static String getDistance(double lat1, double lon1, double lat2, double lon2){
         double distanceInKm = calcDist(lat1, lon1, lat2, lon2);
         if (distanceInKm < 1.0) {
@@ -34,6 +53,14 @@ public class Distance {
         }
     }
 
+    /**
+     * Вывод результата в виде double значения
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
+     * @return
+     */
     public static double getDistanceInKm(double lat1, double lon1, double lat2, double lon2) {
         return calcDist(lat1, lon1, lat2, lon2);
     }

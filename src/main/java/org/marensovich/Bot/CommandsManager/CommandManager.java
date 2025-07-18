@@ -17,14 +17,26 @@ import java.util.Map;
 import java.util.Optional;
 
 public class CommandManager {
+    /**
+     * Обьект для хранения всех команд
+     */
     private final Map<String, Command> commands = new HashMap<>();
+    /**
+     * Обьект для хранения админ команд
+     */
     private final Map<String, Command> adminCommands = new HashMap<>();
+    /**
+     * Обьект для хранения активных команд пользователей
+     */
     private final Map<Long, Command> activeCommands = new HashMap<>();
 
     public CommandManager() {
         registerCommands();
     }
 
+    /**
+     * Регистрация команд
+     */
     private void registerCommands() {
         register(new StartCommand());
         register(new HelpCommand());
@@ -44,14 +56,27 @@ public class CommandManager {
         registerAdmin(new AdminNewsCommand());
     }
 
+    /**
+     * Регистрация пользовательской команды
+     * @param command
+     */
     private void register(Command command) {
         commands.put(command.getName(), command);
     }
 
+    /**
+     * Регистрация админ-команды
+     * @param command
+     */
     private void registerAdmin(Command command) {
         adminCommands.put(command.getName(), command);
     }
 
+    /**
+     * Исполнение команд
+     * @param update
+     * @return
+     */
     public boolean executeCommand(Update update) {
         if (!update.hasMessage() || !update.getMessage().hasText() && !update.getMessage().hasLocation()) {
             return false;
@@ -156,7 +181,11 @@ public class CommandManager {
         return false;
     }
 
-    // Вспомогательные методы
+    /**
+     * Вспомогательные методы
+     * @param command
+     * @return
+     */
     private boolean isAllowedUnauthorizedCommand(String command) {
         return command.equals("/start") || command.equals("/help") ||
                 command.equals("help") || command.equals("/cancel") ||
@@ -183,26 +212,41 @@ public class CommandManager {
         }
     }
 
+    /**
+     * Установка активной команды для пользователя
+     * @param userId
+     * @param command
+     */
     public void setActiveCommand(Long userId, Command command) {
         System.out.println("Команда " + command.getName() + " закреплена за пользователем " + userId);
         activeCommands.put(userId, command);
     }
 
+    /**
+     * Удаления активной команды для пользователя
+     * @param userId
+     */
     public void unsetActiveCommand(Long userId) {
         System.out.println("Команда, закрепленная за пользователем " + userId + " удалена");
         activeCommands.remove(userId);
     }
 
+    /**
+     * Проверка наличия активной команды пользователя
+     * @param userId
+     * @return
+     */
     public boolean hasActiveCommand(Long userId) {
         return activeCommands.containsKey(userId);
     }
 
+    /**
+     * Получения активной команды пользователя
+     * @param userId
+     * @return
+     */
     public Command getActiveCommand(Long userId) {
         return activeCommands.get(userId);
-    }
-
-    public Optional<Command> getActiveCommands(Long userId) {
-        return Optional.ofNullable(activeCommands.get(userId));
     }
 
 }

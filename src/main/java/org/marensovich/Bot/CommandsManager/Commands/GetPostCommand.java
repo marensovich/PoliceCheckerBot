@@ -46,7 +46,14 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Кол-во страниц
+     */
     private static final int PAGE_SIZE = 5;
+
+    /**
+     * Установка переменных для текста callbackов
+     */
     public static final String CALLBACK_PREFIX = "post_";
     public static final String CALLBACK_NEXT_PAGE = CALLBACK_PREFIX + "next";
     public static final String CALLBACK_PREV_PAGE = CALLBACK_PREFIX + "prev";
@@ -63,6 +70,10 @@ public class GetPostCommand implements Command {
         return "/getpost";
     }
 
+    /**
+     * Запуск команды через /getpost
+     * @param update
+     */
     @Override
     public void execute(Update update) {
         Long userId = update.getMessage().getFrom().getId();
@@ -87,6 +98,11 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Метод запуска команды, реагирующий на поступающий update с геолокацией
+     * @param update
+     * @param location
+     */
     public void executeLocation(Update update, Location location) {
         Long userId = update.getMessage().getFrom().getId();
         if (!TelegramBot.getInstance().getCommandManager().hasActiveCommand(userId)) {
@@ -104,6 +120,11 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Обработка для состояния AWAITING_LOCATION
+     * @param update
+     * @param userState
+     */
     private void handleAwaitingLocation(Update update, UserState userState) {
         if (update.getMessage().hasLocation()) {
             executeLocation(update, update.getMessage().getLocation());
@@ -112,6 +133,11 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Обработка нажатия на клавиши навигации
+     * @param update
+     * @param callbackData
+     */
     public void handlePageNavigation(Update update, String callbackData) {
         Long userId = update.getCallbackQuery().getFrom().getId();
         UserState userState = getUserState(userId);
@@ -130,23 +156,26 @@ public class GetPostCommand implements Command {
         }
     }
 
-    public void showPostDetails(Update update, long postId) {  // параметр postId определен здесь
+    /**
+     * Метод для формирования сообщения с подробной информацией о посте
+     * @param update
+     * @param postId
+     */
+    public void showPostDetails(Update update, long postId) {
         try {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             long userId = update.getCallbackQuery().getFrom().getId();
             UserState userState = getUserState(userId);
 
-            // Сохраняем текущую страницу перед переходом к деталям
             userState.lastListPage = userState.currentPage;
 
-            // Находим пост в уже загруженных данных
             List<PolicePost> posts = getNearbyPosts(
                     userState.userLocation.getLatitude(),
                     userState.userLocation.getLongitude()
             );
 
             PolicePost post = posts.stream()
-                    .filter(p -> p.id == postId)  // используем параметр postId
+                    .filter(p -> p.id == postId)
                     .findFirst()
                     .orElse(null);
 
@@ -155,7 +184,6 @@ public class GetPostCommand implements Command {
                 return;
             }
 
-            // Формируем и отправляем сообщение с деталями
             String details = formatPostDetails(post, userState);
             InlineKeyboardMarkup keyboard = createBackKeyboard(postId);
             editOrSendMessage(chatId, details, keyboard);
@@ -167,13 +195,16 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Обработка нажатия на кнопку "назад" в меню с подробной информацией о посте
+     * @param update
+     */
     public void handleBackToList(Update update) {
         try {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             long userId = update.getCallbackQuery().getFrom().getId();
             UserState userState = getUserState(userId);
 
-            // Возвращаемся на последнюю сохраненную страницу списка
             showPostsPage(chatId, userState, userState.lastListPage);
         } catch (Exception e) {
             e.printStackTrace();
@@ -182,6 +213,12 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Создание формата сообщения с подробной информацией о посте
+     * @param post
+     * @param userState
+     * @return
+     */
     private String formatPostDetails(PolicePost post, UserState userState) {
         return String.format(
                 "🔍 Детали поста:\n\n" +
@@ -200,6 +237,12 @@ public class GetPostCommand implements Command {
         );
     }
 
+    /**
+     * Метод для создания нового или редактирования старого сообщения
+     * @param chatId
+     * @param text
+     * @param keyboard
+     */
     private void editOrSendMessage(long chatId, String text, InlineKeyboardMarkup keyboard) {
         try {
             if (lastMessageId != null) {
@@ -222,6 +265,11 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Создание клавиатуры для сообщения с информацией о посте
+     * @param postId
+     * @return
+     */
     private InlineKeyboardMarkup createBackKeyboard(long postId) {
         return InlineKeyboardMarkup.builder()
                 .keyboard(List.of(
@@ -241,6 +289,11 @@ public class GetPostCommand implements Command {
                 .build();
     }
 
+    /**
+     * Обработка нажатия кнопки "отправить геолокацию" при просмотре подробностей поста
+     * @param update
+     * @param postId
+     */
     public void sendPostLocation(Update update, long postId) {
         try {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -277,6 +330,13 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Метод показа главного сообщения с кнопками
+     * @param chatId
+     * @param userState
+     * @param page
+     * @throws TelegramApiException
+     */
     private void showPostsPage(long chatId, UserState userState, int page) throws TelegramApiException {
         try {
             userState.currentPage = page;
@@ -312,13 +372,18 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Метод создания кнопок для постов
+     * @param posts
+     * @param page
+     * @return
+     */
     private InlineKeyboardMarkup createPostsKeyboard(List<PolicePost> posts, int page) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         int start = page * PAGE_SIZE;
         int end = Math.min(start + PAGE_SIZE, posts.size());
 
-        // Добавляем посты
         for (int i = start; i < end; i++) {
             PolicePost post = posts.get(i);
             rows.add(List.of(
@@ -331,21 +396,22 @@ public class GetPostCommand implements Command {
                             .build()
             ));
         }
-
-        // Добавляем кнопку страницы
         rows.add(List.of(
                 InlineKeyboardButton.builder()
                         .text(String.format("Страница %d", page + 1))
                         .callbackData("page_info")
                         .build()
         ));
-        
-        // Добавляем навигацию
         addNavigationButtons(rows, posts.size(), page);
-
         return InlineKeyboardMarkup.builder().keyboard(rows).build();
     }
 
+    /**
+     * Метод добавления навигационных кнопок
+     * @param rows
+     * @param totalPosts
+     * @param currentPage
+     */
     private void addNavigationButtons(List<List<InlineKeyboardButton>> rows,
                                       int totalPosts, int currentPage) {
         if (totalPosts <= PAGE_SIZE) return;
@@ -372,10 +438,21 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Получение списка постов
+     * @param centerLat
+     * @param centerLon
+     * @return
+     * @throws SQLException
+     */
     private List<PolicePost> getNearbyPosts(double centerLat, double centerLon) throws SQLException {
         return TelegramBot.getDatabaseManager().getFilteredPolicePosts(centerLat, centerLon, 10);
     }
 
+    /**
+     * Обработка события при котором ни один пост в радиусе 10 км не был найден
+     * @param chatId
+     */
     private void sendNoPostsMessage(long chatId) {
         try {
             if (lastMessageId != null) {
@@ -395,6 +472,10 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Отправка запроса геолокации
+     * @param chatId
+     */
     private void requestLocation(long chatId) {
         try {
             SendMessage message = new SendMessage();
@@ -406,6 +487,11 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Отправка сообщения об ошибке
+     * @param chatId
+     * @param errorText
+     */
     private void sendErrorMessage(long chatId, String errorText) {
         try {
             SendMessage message = new SendMessage();
@@ -417,10 +503,19 @@ public class GetPostCommand implements Command {
         }
     }
 
+    /**
+     * Возвращает состояния пользователя
+     * @param userId
+     * @return
+     */
     public UserState getUserState(Long userId) {
         return userStates.computeIfAbsent(userId, k -> new UserState());
     }
 
+    /**
+     * Очищает состояние пользователя
+     * @param userId
+     */
     private void cleanupUserState(Long userId) {
         userStates.remove(userId);
         lastMessageId = null;

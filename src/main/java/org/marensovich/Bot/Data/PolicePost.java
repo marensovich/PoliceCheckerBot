@@ -2,6 +2,9 @@ package org.marensovich.Bot.Data;
 
 import java.sql.Timestamp;
 
+/**
+ * Класс для структуры получения данных о посте
+ */
 public class PolicePost {
     public long id;
     public long userId;
