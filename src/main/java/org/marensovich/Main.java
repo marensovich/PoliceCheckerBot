@@ -28,6 +28,5 @@ public class Main {
         } catch (UnsupportedEncodingException | TelegramApiException e) {
             throw new RuntimeException("Ошибка запуска бота", e);
         }
-
     }
 }

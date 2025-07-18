@@ -33,4 +33,9 @@ public class Distance {
             return new BigDecimal(distanceInKm).setScale(2, RoundingMode.HALF_UP) + " км";
         }
     }
+
+    public static double getDistanceInKm(double lat1, double lon1, double lat2, double lon2) {
+        return calcDist(lat1, lon1, lat2, lon2);
+    }
+
 }

@@ -1,8 +1,10 @@
 package org.marensovich.Bot;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.marensovich.Bot.Data.PolicePost;
 import org.marensovich.Bot.Data.SubscribeTypes;
 import org.marensovich.Bot.Data.UserInfo;
+import org.marensovich.Bot.Maps.MapUtils.Distance;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapLanguage;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTypes;
@@ -10,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class DatabaseManager {
@@ -505,6 +508,105 @@ public class DatabaseManager {
         }
 
         return uniqueIds.stream().mapToLong(Long::longValue).toArray();
+    }
+
+    public List<PolicePost> getFilteredPolicePosts(double centerLat, double centerLon,
+                                                   double maxDistanceKm) {
+        List<PolicePost> result = new ArrayList<>();
+        Instant now = Instant.now();
+
+        String query = "SELECT id, user_id, latitude, longitude, post_type, registration_time, comment FROM Police";
+
+        try (Connection connection = getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                long userId = rs.getLong("user_id");
+                double lat = rs.getDouble("latitude");
+                double lon = rs.getDouble("longitude");
+                String type = rs.getString("post_type");
+                Timestamp regTime = rs.getTimestamp("registration_time");
+                String comment = rs.getString("comment");
+
+                double distance = Distance.getDistanceInKm(centerLat, centerLon, lat, lon);
+                if (distance > maxDistanceKm) continue;
+
+                String distanceStr = Distance.getDistance(centerLat, centerLon, lat, lon);
+
+                Instant postTime = regTime.toInstant();
+                long hoursPassed = ChronoUnit.HOURS.between(postTime, now);
+                long minutesPassed = ChronoUnit.MINUTES.between(postTime, now);
+
+                boolean expired = false;
+                if ("Пост ДПС".equals(type)) {
+                    expired = hoursPassed >= 4;
+                } else if ("Патрульная машина".equals(type)) {
+                    expired = minutesPassed >= 15;
+                }
+
+                if (hoursPassed < 24) {
+                    result.add(new PolicePost(id, userId, lat, lon, type, regTime, comment, expired, distanceStr));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    private boolean isPostExpired(String postType, Instant postTime, Instant now) {
+        long hoursPassed = ChronoUnit.HOURS.between(postTime, now);
+        long minutesPassed = ChronoUnit.MINUTES.between(postTime, now);
+
+        return ("Пост ДПС".equals(postType) && hoursPassed >= 4) ||
+                ("Патрульная машина".equals(postType) && minutesPassed >= 15);
+    }
+    
+    public List<PolicePost> getNearbyPosts(double centerLat, double centerLon) throws SQLException {
+        List<PolicePost> posts = new ArrayList<>();
+        Instant now = Instant.now();
+
+        String query = "SELECT id, user_id, latitude, longitude, post_type, registration_time, comment FROM Police";
+
+        try (Connection conn = TelegramBot.getDatabaseManager().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                double lat = rs.getDouble("latitude");
+                double lon = rs.getDouble("longitude");
+                String type = rs.getString("post_type");
+                Timestamp regTime = rs.getTimestamp("registration_time");
+
+                // Проверяем срок годности
+                Instant postTime = regTime.toInstant();
+                long hoursPassed = ChronoUnit.HOURS.between(postTime, now);
+                if (hoursPassed >= 24) continue;
+
+                String distanceStr = Distance.getDistance(centerLat, centerLon, lat, lon);
+                
+                posts.add(new PolicePost(
+                        rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        lat,
+                        lon,
+                        type,
+                        regTime,
+                        rs.getString("comment"),
+                        isPostExpired(type, postTime, now),
+                        distanceStr
+                ));
+            }
+        }
+        // Сортируем по расстоянию
+        posts.sort((p1, p2) -> {
+            double dist1 = Distance.getDistanceInKm(centerLat, centerLon, p1.latitude, p1.longitude);
+            double dist2 = Distance.getDistanceInKm(centerLat, centerLon, p2.latitude, p2.longitude);
+            return Double.compare(dist1, dist2);
+        });
+        return posts;
     }
 
 }

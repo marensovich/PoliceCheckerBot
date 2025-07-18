@@ -1,8 +1,9 @@
 package org.marensovich.Bot.CallbackManager;
 
-import org.marensovich.Bot.CallbackManager.CallBacks.AddPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.CheckSubscriptionHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.News.*;
+import org.marensovich.Bot.CallbackManager.CallBacks.Post.AddPost.*;
+import org.marensovich.Bot.CallbackManager.CallBacks.Post.GetPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Lang.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype.*;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 public class CallbackManager {
     private final Map<String, TelegramCallbackHandler> handlers = new HashMap<>();
+    private final Map<String, TelegramCallbackHandler> prefixHandlers = new HashMap<>();
 
     public CallbackManager() {
         registerHandlers();
@@ -57,14 +59,23 @@ public class CallbackManager {
 
 
         // Обработчики команды /news
-
         register(new CancelHandler());
         register(new ConfirmHandler());
         register(new Type1Handler());
         register(new Type2Handler());
         register(new Type3Handler());
 
+
+        // Обработчики для /getpost
+        registerPrefix(new NextPageHandler());
+        registerPrefix(new BackPageHandler());
+        registerPrefix(new PostDetailHandler());
+        registerPrefix(new BackToPageHandler());
+        registerPrefix(new SendLocationHandler());
+
     }
+
+    private void registerPrefix(TelegramCallbackHandler handler) { prefixHandlers.put(handler.getCallbackData(), handler); }
 
     private void register(TelegramCallbackHandler handler) {
         handlers.put(handler.getCallbackData(), handler);
@@ -80,6 +91,14 @@ public class CallbackManager {
             handler.handle(update);
             return true;
         }
+
+        for (Map.Entry<String, TelegramCallbackHandler> entry : prefixHandlers.entrySet()) {
+            if (callbackData.startsWith(entry.getKey())) {
+                entry.getValue().handle(update);
+                return true;
+            }
+        }
+
         System.out.println("No handler found for: " + callbackData);
         return false;
     }
