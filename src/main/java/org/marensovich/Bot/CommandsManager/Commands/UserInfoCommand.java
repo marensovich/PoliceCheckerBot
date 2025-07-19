@@ -8,6 +8,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.awt.*;
+
 public class UserInfoCommand implements Command {
     @Override
     public String getName() {
@@ -37,9 +39,17 @@ public class UserInfoCommand implements Command {
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             return;
         }
+        String limitgenmap;
+        if (userData.subscribe.equals("vip")){
+            limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP");
+        } else if (userData.subscribe.equals("premium")){
+            limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM");
+        } else {
+            limitgenmap = "Недоступно";
+        }
 
         String message = String.format(
-                        """
+                          """
                         <b>📋 Информация о пользователе:</b>
                         <b> 🆔 ID: </b>%d
                         <b> 🌐 Язык: </b>%s
@@ -55,7 +65,7 @@ public class UserInfoCommand implements Command {
                 userData.getYandexTheme(),
                 userData.getYandexMaptype(),
                 userData.getSubscribe(),
-                userData.getGenMap(),
+                limitgenmap,
                 userData.getRegistrationTime().toString(),
                 (userData.getSubscribeType() != null) ? userData.getSubscribeType() : "Нет",
                 (userData.getSubscriptionExpiration() != null) ? userData.getSubscriptionExpiration().toString() : "Нет"

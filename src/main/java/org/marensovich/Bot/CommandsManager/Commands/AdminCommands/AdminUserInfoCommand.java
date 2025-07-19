@@ -75,6 +75,15 @@ public class AdminUserInfoCommand implements Command {
             }
         }
 
+        String limitgenmap;
+        if (userData.subscribe.equals("vip")){
+            limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP");
+        } else if (userData.subscribe.equals("premium")){
+            limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM");
+        } else {
+            limitgenmap = "Недоступно";
+        }
+
         String message = String.format(
                 """
                         <b>📋 Информация о пользователе:</b>
@@ -94,7 +103,7 @@ public class AdminUserInfoCommand implements Command {
                 userData.getYandexMaptype(),
                 userData.isAdmin() ? "Да" : "Нет",
                 userData.getSubscribe(),
-                userData.getGenMap(),
+                limitgenmap,
                 userData.getRegistrationTime().toString(),
                 (userData.getSubscribeType() != null) ? userData.getSubscribeType() : "Нет",
                 (userData.getSubscriptionExpiration() != null) ? userData.getSubscriptionExpiration().toString() : "Нет"

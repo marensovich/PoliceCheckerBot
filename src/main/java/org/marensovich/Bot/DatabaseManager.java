@@ -635,7 +635,7 @@ public class DatabaseManager {
     }
 
     public String getStringBotData(String key) {
-        String SQL = "SELECT value FROM BotData WHERE `key` = ? AND `type` = 'string'";
+        String SQL = "SELECT `value` FROM BotData WHERE `key` = ? AND `type` = 'string'";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL)) {
             stmt.setString(1, key);
@@ -650,7 +650,7 @@ public class DatabaseManager {
         return null;
     }
     public Integer getIntValueBotData(String key) {
-        String SQL = "SELECT value FROM BotData WHERE `key` = ? AND `type` = 'number'";
+        String SQL = "SELECT `value` FROM BotData WHERE `key` = ? AND `type` = 'number'";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL)) {
             stmt.setString(1, key);
@@ -665,7 +665,7 @@ public class DatabaseManager {
         return null;
     }
     public Boolean getBooleanValueBotData(String key) {
-        String SQL = "SELECT value FROM BotData WHERE `key` = ? AND `type` = 'boolean'";
+        String SQL = "SELECT `value` FROM BotData WHERE `key` = ? AND `type` = 'boolean'";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL)) {
             stmt.setString(1, key);
