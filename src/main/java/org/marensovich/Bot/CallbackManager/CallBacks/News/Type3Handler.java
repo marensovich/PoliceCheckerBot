@@ -1,26 +1,26 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.AddPost;
+package org.marensovich.Bot.CallbackManager.CallBacks.News;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
-import org.marensovich.Bot.CommandsManager.Commands.AddPostCommand;
+import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminNewsCommand;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class PostConfirmHandler implements TelegramCallbackHandler {
+public class Type3Handler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return AddPostCommand.CALLBACK_CONFIRM;
+        return AdminNewsCommand.CALLBACK_TYPE_3;
     }
 
     @Override
     public void handle(Update update) throws TelegramApiException {
         Long userId = update.getCallbackQuery().getFrom().getId();
-        AddPostCommand command = (AddPostCommand) TelegramBot.getInstance()
+        AdminNewsCommand command = (AdminNewsCommand) TelegramBot.getInstance()
                 .getCommandManager()
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handlePostConfirm(update);
+            command.handleNewsType(update, getCallbackData());
         }
     }
 }

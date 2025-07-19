@@ -1,5 +1,8 @@
 package org.marensovich.Bot.Data;
 
+/**
+ * Типы подписок
+ */
 public enum SubscribeTypes {
 
     None("none"),
@@ -16,6 +19,11 @@ public enum SubscribeTypes {
         return type;
     }
 
+    /**
+     * Получения enum типа подписки по тексту
+     * @param text
+     * @return
+     */
     public static SubscribeTypes fromString(String text) {
         for (SubscribeTypes b : SubscribeTypes.values()) {
             if (b.type.equalsIgnoreCase(text)) {

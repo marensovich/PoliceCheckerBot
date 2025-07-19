@@ -3,6 +3,7 @@ package org.marensovich.Bot.CallbackManager.CallBacks;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.RegisterCommand;
+import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -39,6 +40,14 @@ public class CheckSubscriptionHandler implements TelegramCallbackHandler {
             }
 
             TelegramBot.getInstance().execute(response);
+
+            RegisterCommand command = (RegisterCommand) TelegramBot.getInstance()
+                    .getCommandManager()
+                    .getActiveCommand(userId);
+
+            if (command != null) {
+                command.registerUser(userId, chatId);
+            }
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

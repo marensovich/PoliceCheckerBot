@@ -3,6 +3,7 @@ package org.marensovich.Bot.CommandsManager.Commands;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -28,7 +29,7 @@ public class SubscribeCommand implements Command {
                 Рады представить наши подписки — *VIP* и *Premium*, которые откроют для вас новые возможности и сделают использование бота еще удобнее и приятнее. \s
                 
                 \uD83D\uDC8E *VIP-подписка* — всего за 499 рублей. \s
-                Она даст вам доступ к [преимущества VIP], позволяя максимально эффективно использовать все функции бота и получать больше пользы. \s
+                Она даст вам доступ к созданию карт с точками, где расположены ДПС (до 5 в день), позволяя максимально эффективно использовать все функции бота и получать больше пользы. \s
                 
                 \uD83D\uDE80 *Premium-подписка* — всего за 999 рублей. \s
                 Это расширенный пакет с [преимущества Premium], который откроет перед вами дополнительные возможности и обеспечит лучший опыт работы с ботом. \s
@@ -56,6 +57,10 @@ public class SubscribeCommand implements Command {
         try {
             TelegramBot.getInstance().execute(sendPhoto);
         } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             throw new RuntimeException(e);
         }
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());

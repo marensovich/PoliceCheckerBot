@@ -1,11 +1,20 @@
 package org.marensovich.Bot;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.marensovich.Bot.Data.PolicePost;
 import org.marensovich.Bot.Data.SubscribeTypes;
 import org.marensovich.Bot.Data.UserInfo;
+import org.marensovich.Bot.Maps.MapUtils.Distance;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapLanguage;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTypes;
+import org.marensovich.Bot.Utils.LoggerUtil;
+import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 public class DatabaseManager {
     private static final Dotenv dotenv = Dotenv.load();
@@ -17,7 +26,7 @@ public class DatabaseManager {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            System.err.println("MySQL JDBC Driver не найден!");
+            LoggerUtil.logError(DatabaseManager.class, "MySQL JDBC Driver не найден!");
             e.printStackTrace();
             System.exit(1);
         }
@@ -27,7 +36,8 @@ public class DatabaseManager {
         try (Connection conn = getConnection()) {
             return conn.isValid(2);
         } catch (SQLException e) {
-            System.err.println("Ошибка подключения к БД: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка подключения к БД: " + e.getMessage());
+e.printStackTrace();
             return false;
         }
     }
@@ -59,10 +69,11 @@ public class DatabaseManager {
                 )""";
         String CREATE_POLICE_DATA_TABLE_SQL = """
                 CREATE TABLE IF NOT EXISTS Police (
-                    id BIGINT PRIMARY KEY,
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
                     user_id BIGINT NOT NULL,
-                    latitude FLOAT NOT NULL,
-                    longitude FLOAT NOT NULL,
+                    latitude DOUBLE NOT NULL,
+                    longitude DOUBLE NOT NULL,
+                    post_type VARCHAR(20) NOT NULL,
                     registration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     comment TEXT
                 )""";
@@ -73,15 +84,25 @@ public class DatabaseManager {
                     exp_at TIMESTAMP NOT NULL
                 )""";
 
+        String CREATE_BOTDATA_TABLE_SQL = """
+                CREATE TABLE IF NOT EXISTS BotData (
+                    `key` VARCHAR(255) PRIMARY KEY NOT NULL,
+                    `value` TEXT,
+                    `type` ENUM('string', 'number', 'boolean') NOT NULL DEFAULT 'string',
+                    `description` TEXT
+                )""";
+
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(CREATE_ALL_USERS_TABLE_SQL);
             stmt.executeUpdate(CREATE_USERS_TABLE_SQL);
             stmt.executeUpdate(CREATE_POLICE_DATA_TABLE_SQL);
             stmt.executeUpdate(CREATE_SUBSCRIBES_TABLE_SQL);
-            System.out.println("Таблицы All_Users, Users и Police успешно созданы или уже существовали");
+            stmt.executeUpdate(CREATE_BOTDATA_TABLE_SQL);
+            LoggerUtil.logInfo(getClass(), "Таблицы All_Users, Users, BotData и Police успешно созданы или уже существовали");
         } catch (SQLException e) {
-            System.err.println("Ошибка при создании таблицы: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при создании таблицы: " + e.getMessage());
+e.printStackTrace();
             throw new RuntimeException("Не удалось создать таблицу", e);
         }
     }
@@ -95,7 +116,8 @@ public class DatabaseManager {
                 return rs.next();
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке пользователя: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке пользователя: " + e.getMessage());
+e.printStackTrace();
             return false;
         }
     }
@@ -107,9 +129,10 @@ public class DatabaseManager {
             stmt.setLong(1, userId);
             stmt.setTimestamp(2, Timestamp.from(Instant.now()));
             stmt.executeUpdate();
-            System.out.println("Пользователь " + userId + " успешно добавлен");
+            LoggerUtil.logInfo(getClass(), "Пользователь " + userId + " успешно добавлен");
         } catch (SQLException e) {
-            System.err.println("Ошибка при добавлении пользователя: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при добавлении пользователя: " + e.getMessage());
+e.printStackTrace();
             throw new RuntimeException("Не удалось добавить пользователя", e);
         }
     }
@@ -125,7 +148,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении времени регистрации: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении времени регистрации: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -139,7 +163,9 @@ public class DatabaseManager {
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении количества пользователей: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении количества пользователей: " + e.getMessage());
+            e.printStackTrace();
+            e.printStackTrace();
         }
         return 0;
     }
@@ -153,7 +179,9 @@ public class DatabaseManager {
                 return rs.next();
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке пользователя: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке пользователя: " + e.getMessage());
+            e.printStackTrace();
+            e.printStackTrace();
             return false;
         }
     }
@@ -164,10 +192,11 @@ public class DatabaseManager {
              PreparedStatement stmt = conn.prepareStatement(SQL)) {
             stmt.setLong(1, userId);
             stmt.executeUpdate();
-            System.out.println("Пользователь " + userId + " успешно добавлен");
+            LoggerUtil.logInfo(getClass(), "Пользователь " + userId + " успешно добавлен");
         } catch (SQLException e) {
-            System.err.println("Ошибка при добавлении пользователя: " + e.getMessage());
-            throw new RuntimeException("Не удалось добавить пользователя", e);
+            LoggerUtil.logError(getClass(), "Ошибка при добавлении пользователя: " + e.getMessage());
+            e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
@@ -201,6 +230,7 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка при работе бота: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -219,7 +249,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке статуса администратора: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке статуса администратора: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -241,10 +272,10 @@ public class DatabaseManager {
                 int rowsUpdated = stmtUpdate.executeUpdate();
 
                 if (rowsAdded > 0 && rowsUpdated > 0) {
-                    System.out.println("Подписка " + type + " успешно выдана пользователю " + userid);
+                    LoggerUtil.logInfo(getClass(), "Подписка " + type + " успешно выдана пользователю " + userid);
                     conn.commit();
                 } else {
-                    System.out.println("Пользователь с ID " + userid + " не найден или ошибка при добавлении.");
+                    LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userid + " не найден или ошибка при добавлении.");
                     conn.rollback();
                 }
             } catch (SQLException e) {
@@ -254,7 +285,8 @@ public class DatabaseManager {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            System.out.println("Ошибка при выдаче подписки пользователю " + userid + ": " + e.getMessage());
+            LoggerUtil.logInfo(getClass(), "Ошибка при выдаче подписки пользователю " + userid + ": " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Не удалось выдать подписку пользователю " + userid, e);
         }
     }
@@ -277,10 +309,10 @@ public class DatabaseManager {
                 int rowsDeleted = stmtDeleteSubs.executeUpdate();
 
                 if (rowsUpdated > 0) {
-                    System.out.println("Подписка пользователя " + userid + " успешно обнулена.");
+                    LoggerUtil.logInfo(getClass(), "Подписка пользователя " + userid + " успешно обнулена.");
                     conn.commit();
                 } else {
-                    System.out.println("Пользователь с ID " + userid + " не найден или ошибка при обновлении.");
+                    LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userid + " не найден или ошибка при обновлении.");
                     conn.rollback();
                 }
             } catch (SQLException e) {
@@ -290,7 +322,8 @@ public class DatabaseManager {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            System.out.println("Ошибка при сбросе подписки пользователю " + userid + ": " + e.getMessage());
+            LoggerUtil.logInfo(getClass(), "Ошибка при сбросе подписки пользователю " + userid + ": " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Не удалось сбросить подписку пользователю " + userid, e);
         }
     }
@@ -310,4 +343,412 @@ public class DatabaseManager {
         }
         return null;
     }
+
+    public void addPolicePost(Long userId, Location location, String postType, String comment){
+        String SQL = "INSERT INTO Police (user_id, latitude, longitude, post_type, comment) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)){
+            stmt.setLong(1, userId);
+            stmt.setDouble(2, location.getLatitude());
+            stmt.setDouble(3, location.getLongitude());
+            stmt.setString(4, postType);
+            stmt.setString(5, comment);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Не удалось добавить пост" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    public void setUserYandexLang(long userId, YandexMapLanguage yandexMapLanguage){
+        String SQL = "UPDATE Users SET yandex_lang = ? WHERE user_id = ?";
+            try (Connection conn = getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(SQL)) {
+
+                stmt.setString(1, yandexMapLanguage.getLang());
+                stmt.setLong(2, userId);
+                int rowsUpdated = stmt.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    LoggerUtil.logInfo(getClass(), "Настройки пользователя " + userId + " успешно обновлены.");
+                    conn.commit();
+                } else {
+                    LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                    conn.rollback();
+                }
+            } catch (SQLException e){
+                throw new RuntimeException("Не удалось обновить настройки", e);
+            }
+    }
+
+    public void setUserYandexTheme(long userId, YandexMapTheme yandexMapTheme){
+        String SQL = "UPDATE Users SET yandex_lang = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+
+            stmt.setString(1, yandexMapTheme.getTheme());
+            stmt.setLong(2, userId);
+            int rowsUpdated = stmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                LoggerUtil.logInfo(getClass(), "Настройки пользователя " + userId + " успешно обновлены.");
+                conn.commit();
+            } else {
+                LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                conn.rollback();
+            }
+        } catch (SQLException e){
+            throw new RuntimeException("Не удалось обновить настройки", e);
+        }
+    }
+
+    public void setUserYandexMapType(long userId, YandexMapTypes yandexMapType){
+        String SQL = "UPDATE Users SET yandex_lang = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+
+            stmt.setString(1, yandexMapType.getType());
+            stmt.setLong(2, userId);
+            int rowsUpdated = stmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                LoggerUtil.logInfo(getClass(), "Настройки пользователя " + userId + " успешно обновлены.");
+                conn.commit();
+            } else {
+                LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                conn.rollback();
+            }
+        } catch (SQLException e){
+            throw new RuntimeException("Не удалось обновить настройки", e);
+        }
+    }
+
+    public Map<String, String> getUserSettings(long userId) {
+        Map<String, String> settings = new HashMap<>();
+        String query = "SELECT yandex_lang, yandex_theme, yandex_maptype FROM Users WHERE user_id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setLong(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                settings.put("yandex_lang", resultSet.getString("yandex_lang"));
+                settings.put("yandex_theme", resultSet.getString("yandex_theme"));
+                settings.put("yandex_maptype", resultSet.getString("yandex_maptype"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return settings;
+    }
+
+    public void updateUserSetting(long userid, String setting, String value){
+        String sql = "UPDATE Users SET " + setting + " = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, value);
+            stmt.setLong(2, userid);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateUserSettings(long userId, YandexMapTheme currentTheme, YandexMapTypes currentMapType, YandexMapLanguage currentLang){
+        String sql = "UPDATE Users SET yandex_theme = ?, yandex_maptype = ?, yandex_lang = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, currentTheme.getTheme());
+            stmt.setString(2, currentMapType.getType());
+            stmt.setString(3, currentLang.getLang());
+            stmt.setLong(4, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long[] getAllUsersTableIDs() {
+        String query = "SELECT user_id FROM All_Users";
+        List<Long> userIds = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+                userIds.add(resultSet.getLong("user_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new long[0];
+        }
+
+        return userIds.stream().mapToLong(Long::longValue).toArray();
+    }
+
+    public long[] getUsersTableIDs() {
+        String query = "SELECT user_id FROM Users";
+        List<Long> userIds = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+                userIds.add(resultSet.getLong("user_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new long[0];
+        }
+
+        return userIds.stream().mapToLong(Long::longValue).toArray();
+    }
+
+
+    public long[] getAllUsers() {
+        Set<Long> uniqueIds = new HashSet<>();
+
+        try (Connection connection = getConnection()) {
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT user_id FROM All_Users")) {
+                while (rs.next()) {
+                    uniqueIds.add(rs.getLong("user_id"));
+                }
+            }
+
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT user_id FROM Users")) {
+                while (rs.next()) {
+                    uniqueIds.add(rs.getLong("user_id"));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new long[0];
+        }
+
+        return uniqueIds.stream().mapToLong(Long::longValue).toArray();
+    }
+
+    public List<PolicePost> getFilteredPolicePosts(double centerLat, double centerLon,
+                                                   double maxDistanceKm) {
+        List<PolicePost> result = new ArrayList<>();
+        Instant now = Instant.now();
+
+        String query = "SELECT id, user_id, latitude, longitude, post_type, registration_time, comment FROM Police";
+
+        try (Connection connection = getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                long userId = rs.getLong("user_id");
+                double lat = rs.getDouble("latitude");
+                double lon = rs.getDouble("longitude");
+                String type = rs.getString("post_type");
+                Timestamp regTime = rs.getTimestamp("registration_time");
+                String comment = rs.getString("comment");
+
+                double distance = Distance.getDistanceInKm(centerLat, centerLon, lat, lon);
+                if (distance > maxDistanceKm) continue;
+
+                String distanceStr = Distance.getDistance(centerLat, centerLon, lat, lon);
+
+                Instant postTime = regTime.toInstant();
+                long hoursPassed = ChronoUnit.HOURS.between(postTime, now);
+                long minutesPassed = ChronoUnit.MINUTES.between(postTime, now);
+
+                boolean expired = false;
+                if ("Пост ДПС".equals(type)) {
+                    expired = hoursPassed >= 4;
+                } else if ("Патрульная машина".equals(type)) {
+                    expired = minutesPassed >= 15;
+                }
+
+                if (hoursPassed < 24) {
+                    result.add(new PolicePost(id, userId, lat, lon, type, regTime, comment, expired, distanceStr));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    private boolean isPostExpired(String postType, Instant postTime, Instant now) {
+        long hoursPassed = ChronoUnit.HOURS.between(postTime, now);
+        long minutesPassed = ChronoUnit.MINUTES.between(postTime, now);
+
+        return ("Пост ДПС".equals(postType) && hoursPassed >= 4) ||
+                ("Патрульная машина".equals(postType) && minutesPassed >= 15);
+    }
+    
+    public List<PolicePost> getNearbyPosts(double centerLat, double centerLon) throws SQLException {
+        List<PolicePost> posts = new ArrayList<>();
+        Instant now = Instant.now();
+
+        String query = "SELECT id, user_id, latitude, longitude, post_type, registration_time, comment FROM Police";
+
+        try (Connection conn = TelegramBot.getDatabaseManager().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                double lat = rs.getDouble("latitude");
+                double lon = rs.getDouble("longitude");
+                String type = rs.getString("post_type");
+                Timestamp regTime = rs.getTimestamp("registration_time");
+
+                // Проверяем срок годности
+                Instant postTime = regTime.toInstant();
+                long hoursPassed = ChronoUnit.HOURS.between(postTime, now);
+                if (hoursPassed >= 24) continue;
+
+                String distanceStr = Distance.getDistance(centerLat, centerLon, lat, lon);
+                
+                posts.add(new PolicePost(
+                        rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        lat,
+                        lon,
+                        type,
+                        regTime,
+                        rs.getString("comment"),
+                        isPostExpired(type, postTime, now),
+                        distanceStr
+                ));
+            }
+        }
+        // Сортируем по расстоянию
+        posts.sort((p1, p2) -> {
+            double dist1 = Distance.getDistanceInKm(centerLat, centerLon, p1.latitude, p1.longitude);
+            double dist2 = Distance.getDistanceInKm(centerLat, centerLon, p2.latitude, p2.longitude);
+            return Double.compare(dist1, dist2);
+        });
+        return posts;
+    }
+
+
+    public void incrementGenMap(long userId) throws SQLException {
+        String sql = "UPDATE Users SET gen_map = gen_map + 1 WHERE user_id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, userId);
+            int affectedRows = statement.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Пользователь с ID " + userId + " не найден");
+            }
+        }
+    }
+
+    public String getStringBotData(String key) {
+        String SQL = "SELECT `value` FROM BotData WHERE `key` = ? AND `type` = 'string'";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("value");
+                }
+            }
+        } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Ошибка при получении строкового значения: " + e.getMessage());
+e.printStackTrace();
+        }
+        return null;
+    }
+    public Integer getIntValueBotData(String key) {
+        String SQL = "SELECT `value` FROM BotData WHERE `key` = ? AND `type` = 'number'";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Integer.parseInt(rs.getString("value"));
+                }
+            }
+        } catch (SQLException | NumberFormatException e) {
+            LoggerUtil.logError(getClass(), "Ошибка при получении числового значения: " + e.getMessage());
+e.printStackTrace();
+        }
+        return null;
+    }
+    public Boolean getBooleanValueBotData(String key) {
+        String SQL = "SELECT `value` FROM BotData WHERE `key` = ? AND `type` = 'boolean'";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Boolean.parseBoolean(rs.getString("value"));
+                }
+            }
+        } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Ошибка при получении boolean значения: " + e.getMessage());
+e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean keyExistsBotData(String key) {
+        String SQL = "SELECT 1 FROM BotData WHERE `key` = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Ошибка при проверке существования ключа: " + e.getMessage());
+e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Map<String, Object> getFullRecordBotData(String key) {
+        String SQL = "SELECT * FROM BotData WHERE `key` = ?";
+        Map<String, Object> result = new HashMap<>();
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    result.put("value", rs.getString("value"));
+                    result.put("type", rs.getString("type"));
+                    result.put("description", rs.getString("description"));
+                    return result;
+                }
+            }
+        } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Ошибка при получении полной записи: " + e.getMessage());
+e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void resetAllGenMaps() {
+        String sql = "UPDATE Users SET gen_map = 0";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            int updatedRows = stmt.executeUpdate();
+            LoggerUtil.logInfo(getClass(), "Сброшено gen_map для " + updatedRows + " пользователей");
+
+        } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Ошибка при сбросе gen_map: " + e.getMessage());
+e.printStackTrace();
+        }
+    }
+
 }

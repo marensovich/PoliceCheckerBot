@@ -1,6 +1,8 @@
-package org.marensovich.Bot.YandexMapAPI;
+package org.marensovich.Bot.Maps.YandexMapAPI;
 
-import org.marensovich.Bot.YandexMapAPI.YandexData.*;
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.YandexMapsURL;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
+import org.marensovich.Bot.Utils.LoggerUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -15,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 public class YandexMaps {
 
     public InputStream getPhoto(float latitude, float longitude,
-                                float spn, String bbox,
+                                Float spn, String bbox,
                                 Integer z, YandexMapSize mapSize,
                                 YandexMapScale scale, String pt,
                                 String pl, YandexMapLanguage lang,
@@ -32,14 +34,14 @@ public class YandexMaps {
         connection.setRequestProperty("Accept", "image/png");
 
         int responseCode = connection.getResponseCode();
-        System.out.println("[DEBUG] HTTP Response Code: " + responseCode);
+        LoggerUtil.logDebug(getClass(), "[DEBUG] HTTP Response Code: " + responseCode);
 
         if (responseCode != HttpURLConnection.HTTP_OK) {
             String errorMessage;
             try (InputStream errorStream = connection.getErrorStream()) {
                 if (errorStream != null) {
                     errorMessage = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
-                    System.out.println("[ERROR] Yandex API Error Response:\n" + errorMessage);
+                    LoggerUtil.logError(getClass(), "[ERROR] Yandex API Error Response:\n" + errorMessage);
                     if (errorMessage.contains("<error>")) {
                         errorMessage = errorMessage.split("<message>")[1].split("</message>")[0];
                     }

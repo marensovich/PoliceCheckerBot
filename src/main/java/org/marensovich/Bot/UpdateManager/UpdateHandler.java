@@ -1,6 +1,7 @@
 package org.marensovich.Bot.UpdateManager;
 
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -16,6 +17,11 @@ public class UpdateHandler {
                 }
                 if (TelegramBot.getInstance().getCommandManager().hasActiveCommand(update.getMessage().getFrom().getId())){
                     TelegramBot.getInstance().getCommandManager().executeCommand(update);
+                    return;
+                }
+                if (update.getMessage().hasLocation()){
+                    TelegramBot.getInstance().getCommandManager().executeCommand(update);
+                    return;
                 }
                 if (update.getMessage().hasText()){
                     if (update.getMessage().getText().startsWith("/")){
@@ -28,7 +34,9 @@ public class UpdateHandler {
                             try {
                                 TelegramBot.getInstance().execute(message);
                             } catch (TelegramApiException e) {
+                                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
                                 e.printStackTrace();
+                                throw new RuntimeException(e);
                             }
                         }
                     }
@@ -39,17 +47,19 @@ public class UpdateHandler {
                 if (!TelegramBot.getDatabaseManager().checkAllUsersExists(userId)) {
                     TelegramBot.getDatabaseManager().addAllUser(userId);
                 }
-                System.out.println("Processing callback: " + update.getCallbackQuery().getData());
+                LoggerUtil.logInfo(getClass(), "Processing callback: " + update.getCallbackQuery().getData());
                 boolean handled = TelegramBot.getInstance().getCallbackManager().handleCallback(update);
                 if (!handled) {
-                    System.out.println("No handler found for callback: " + update.getCallbackQuery().getData());
+                    LoggerUtil.logInfo(getClass(), "No handler found for callback: " + update.getCallbackQuery().getData());
                     SendMessage errorMsg = new SendMessage();
                     errorMsg.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
                     errorMsg.setText("Действие не распознано, попробуйте ещё раз");
                     try {
                         TelegramBot.getInstance().execute(errorMsg);
                     } catch (TelegramApiException e) {
+                        LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
                         e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 }
             }

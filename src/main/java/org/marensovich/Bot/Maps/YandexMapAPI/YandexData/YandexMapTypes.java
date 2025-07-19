@@ -1,8 +1,8 @@
-package org.marensovich.Bot.YandexMapAPI.YandexData;
+package org.marensovich.Bot.Maps.YandexMapAPI.YandexData;
 
 public enum YandexMapTypes {
 
-    base("map"),
+    map("map"),
     driving("driving"),
     transit("transit"),
     admin("admin");
