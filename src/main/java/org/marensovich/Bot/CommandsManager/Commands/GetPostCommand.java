@@ -60,6 +60,7 @@ public class GetPostCommand implements Command {
     public static final String CALLBACK_POST_DETAIL = CALLBACK_PREFIX + "detail";
     public static final String CALLBACK_BACK_TO_LIST = CALLBACK_PREFIX + "back";
     public static final String CALLBACK_SEND_LOCATION = CALLBACK_PREFIX + "location";
+    public static final String CALLBACK_PAGE_INFO = CALLBACK_PREFIX + "info";
 
 
     private final Map<Long, UserState> userStates = new ConcurrentHashMap<>();
@@ -399,7 +400,7 @@ public class GetPostCommand implements Command {
         rows.add(List.of(
                 InlineKeyboardButton.builder()
                         .text(String.format("Страница %d", page + 1))
-                        .callbackData("page_info")
+                        .callbackData(CALLBACK_PAGE_INFO)
                         .build()
         ));
         addNavigationButtons(rows, posts.size(), page);

@@ -79,6 +79,7 @@ public class CallbackManager {
 
 
         // Обработчики для /getpost
+        register(new PageInfoHandler());
         registerPrefix(new NextPageHandler());
         registerPrefix(new BackPageHandler());
         registerPrefix(new PostDetailHandler());
