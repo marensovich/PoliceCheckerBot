@@ -1,4 +1,4 @@
-package org.marensovich.Bot.YandexMapAPI.YandexData;
+package org.marensovich.Bot.Maps.YandexMapAPI.YandexData;
 
 public enum YandexMapTheme {
 

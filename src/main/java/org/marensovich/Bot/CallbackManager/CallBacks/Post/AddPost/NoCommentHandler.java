@@ -1,4 +1,4 @@
-package org.marensovich.Bot.CallbackManager.CallBacks.AddPost;
+package org.marensovich.Bot.CallbackManager.CallBacks.Post.AddPost;
 
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.AddPostCommand;
@@ -6,10 +6,10 @@ import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class PostConfirmHandler implements TelegramCallbackHandler {
+public class NoCommentHandler implements TelegramCallbackHandler {
     @Override
     public String getCallbackData() {
-        return AddPostCommand.CALLBACK_CONFIRM;
+        return AddPostCommand.CALLBACK_NO_COMMENT;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class PostConfirmHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            command.handlePostConfirm(update);
+            command.handleSkipComment(update);
         }
     }
 }

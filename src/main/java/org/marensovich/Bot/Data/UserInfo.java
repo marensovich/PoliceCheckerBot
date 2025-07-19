@@ -3,6 +3,9 @@ package org.marensovich.Bot.Data;
 import java.sql.Timestamp;
 
 
+/**
+ * Класс информации о пользователе
+ */
 public class UserInfo {
 
     public long userId;

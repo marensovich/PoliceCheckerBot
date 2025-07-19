@@ -1,7 +1,7 @@
-package org.marensovich.Bot.YandexMapAPI;
+package org.marensovich.Bot.Maps.YandexMapAPI;
 
-import org.marensovich.Bot.YandexMapAPI.YandexData.*;
-
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.YandexMapsURL;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 public class YandexMaps {
 
     public InputStream getPhoto(float latitude, float longitude,
-                                float spn, String bbox,
+                                Float spn, String bbox,
                                 Integer z, YandexMapSize mapSize,
                                 YandexMapScale scale, String pt,
                                 String pl, YandexMapLanguage lang,
