@@ -48,13 +48,12 @@ public class RegisterCommand implements Command {
                 sendSubscriptionRequest(chatId);
             }
         } catch (TelegramApiException e) {
-            sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
     }
 
     private boolean isMember(String status) {
@@ -94,24 +93,27 @@ public class RegisterCommand implements Command {
         } catch (TelegramApiException e) {
             LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
             throw new RuntimeException(e);
         }
     }
 
-    private void registerUser(Long userId, Long chatId) {
+    public void registerUser(Long userId, Long chatId) {
         try {
-            DatabaseManager dbManager = TelegramBot.getDatabaseManager();
-
-            if (dbManager.checkUsersExists(userId)) {
+            if (TelegramBot.getDatabaseManager().checkUsersExists(userId)) {
                 sendSuccessMessage(chatId, "ℹ️ Вы уже зарегистрированы!");
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             } else {
-                dbManager.addUser(userId);
+                TelegramBot.getDatabaseManager().addUser(userId);
                 sendSuccessMessage(chatId, "✅ Регистрация прошла успешно!\nТеперь вам открыты часть функций бота, подробнее в /help.");
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             }
         } catch (Exception e) {
-            sendErrorMessage(chatId, "⚠️ Ошибка при регистрации. Попробуйте позже.");
             LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             throw new RuntimeException(e);
         }
     }
@@ -122,18 +124,5 @@ public class RegisterCommand implements Command {
         message.setText(text);
         message.setParseMode("Markdown");
         TelegramBot.getInstance().execute(message);
-    }
-
-    private void sendErrorMessage(Long chatId, String text) {
-        try {
-            SendMessage message = new SendMessage();
-            message.setChatId(chatId.toString());
-            message.setText(text);
-            TelegramBot.getInstance().execute(message);
-        } catch (TelegramApiException e) {
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
     }
 }
