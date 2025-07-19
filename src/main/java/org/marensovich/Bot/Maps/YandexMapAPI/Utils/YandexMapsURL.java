@@ -22,15 +22,13 @@ public class YandexMapsURL {
     private static final String THEME = "&theme=";
     private static final String MAPTYPE = "&maptype=";
 
-    public String generateURL(
+    public static String generateURL(
             float latitude, float longitude,
             Float spn, String bbox,
             Integer z, YandexMapSize mapSize,
             YandexMapScale scale, String pt,
             String pl, YandexMapLanguage lang,
             String style, YandexMapTheme theme, YandexMapTypes maptype) {
-
-        System.out.println(YandexMapsAPIToken);
 
         StringBuilder urlBuilder = new StringBuilder(BASE_URL);
 
@@ -44,8 +42,16 @@ public class YandexMapsURL {
         if (bbox != null && !bbox.isEmpty()) {
             urlBuilder.append(BBOX).append(bbox);
         }
-        if (z != null && z != 0) {
-            urlBuilder.append(Z).append(z);
+        if (z != null) {
+            if (z <= 0){
+                z = 0;
+                urlBuilder.append(Z).append(z);
+            } else if (z >= 21){
+                z = 21;
+                urlBuilder.append(Z).append(z);
+            } else {
+                urlBuilder.append(Z).append(z);
+            }
         }
         if (mapSize != null) {
             int[] dimensions = mapSize.getDimensions();
@@ -72,6 +78,10 @@ public class YandexMapsURL {
         urlBuilder.append("&apikey=").append(YandexMapsAPIToken);
 
         return urlBuilder.toString();
+    }
+
+    public static String getBBOXparam(double x1, double x2, double y1, double y2){
+        return x1 + x2 + "~" + y1 + y2;
     }
 }
 

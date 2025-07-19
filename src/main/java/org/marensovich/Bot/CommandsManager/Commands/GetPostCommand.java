@@ -2,12 +2,22 @@ package org.marensovich.Bot.CommandsManager.Commands;
 
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.Data.PolicePost;
+import org.marensovich.Bot.Data.UserInfo;
 import org.marensovich.Bot.Maps.MapUtils.Distance;
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.Markers.MarkerColor;
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.Markers.MarkerSize;
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.Markers.MarkerStyle;
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.Markers.YandexMapsMarkers;
+import org.marensovich.Bot.Maps.YandexMapAPI.Utils.YandexMapsURL;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexMaps;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -15,6 +25,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +73,7 @@ public class GetPostCommand implements Command {
     public static final String CALLBACK_BACK_TO_LIST = CALLBACK_PREFIX + "back";
     public static final String CALLBACK_SEND_LOCATION = CALLBACK_PREFIX + "location";
     public static final String CALLBACK_PAGE_INFO = CALLBACK_PREFIX + "info";
-
+    public static final String CALLBACK_POST_PHOTO= CALLBACK_PREFIX + "photo";
 
     private final Map<Long, UserState> userStates = new ConcurrentHashMap<>();
     private Integer lastMessageId = null;
@@ -351,7 +363,7 @@ public class GetPostCommand implements Command {
                 return;
             }
 
-            InlineKeyboardMarkup keyboard = createPostsKeyboard(posts, page);
+            InlineKeyboardMarkup keyboard = createPostsKeyboard(posts, page, chatId);
 
             if (lastMessageId == null) {
                 SendMessage message = new SendMessage();
@@ -379,7 +391,7 @@ public class GetPostCommand implements Command {
      * @param page
      * @return
      */
-    private InlineKeyboardMarkup createPostsKeyboard(List<PolicePost> posts, int page) {
+    private InlineKeyboardMarkup createPostsKeyboard(List<PolicePost> posts, int page, long chatid) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         int start = page * PAGE_SIZE;
@@ -403,6 +415,15 @@ public class GetPostCommand implements Command {
                         .callbackData(CALLBACK_PAGE_INFO)
                         .build()
         ));
+        UserInfo user = TelegramBot.getDatabaseManager().getUserInfo(chatid);
+        if (!user.getSubscribe().equals("none")){
+            rows.add(List.of(
+                    InlineKeyboardButton.builder()
+                            .text(String.format("Карта", page + 1))
+                            .callbackData(CALLBACK_POST_PHOTO)
+                            .build()
+            ));
+        }
         addNavigationButtons(rows, posts.size(), page);
         return InlineKeyboardMarkup.builder().keyboard(rows).build();
     }
@@ -471,6 +492,67 @@ public class GetPostCommand implements Command {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Метод отправки фотографии карты с точками постов
+     * @param update
+     */
+    public void handleSendMap(Update update) throws SQLException {
+        UserState userState = getUserState(update.getCallbackQuery().getFrom().getId());
+        UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getCallbackQuery().getFrom().getId());
+
+        if (userInfo.subscribe.equals("vip") && userInfo.genMap >= 3){
+            return;
+        }
+        if (userInfo.subscribe.equals("premium") && userInfo.genMap >= 10){
+            return;
+        }
+
+        List<PolicePost> posts = getNearbyPosts(
+                userState.userLocation.getLatitude(),
+                userState.userLocation.getLongitude()
+        );
+
+        YandexMapsMarkers yandexMapsMarkers = new YandexMapsMarkers();
+
+        for (PolicePost post : posts) {
+            yandexMapsMarkers.addMarker(post.longitude, post.latitude, MarkerStyle.PM2, MarkerColor.RED, MarkerSize.LARGE);
+        }
+        yandexMapsMarkers.addMarker(userState.userLocation.getLongitude(), userState.userLocation.getLatitude(), MarkerStyle.PM2, MarkerColor.BLUE, MarkerSize.LARGE);
+
+        InputStream is = null;
+        try {
+            is = new YandexMaps().getPhoto(Float.parseFloat(userState.userLocation.getLongitude().toString()),
+                    Float.parseFloat(userState.userLocation.getLatitude().toString()),
+                    null,
+                    null,
+                    null,
+                    YandexMapSize.Large,
+                    YandexMapScale.SCALE_1,
+                    yandexMapsMarkers.generatePtParameter(),
+                    null,
+                    YandexMapLanguage.valueOf(userInfo.yandexLang),
+                    null,
+                    YandexMapTheme.valueOf(userInfo.yandexTheme),
+                    YandexMapTypes.valueOf(userInfo.yandexMaptype));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setChatId(update.getCallbackQuery().getFrom().getId());
+        sendPhoto.setPhoto(new InputFile(is, "map.png"));
+
+        try {
+            Message msg = TelegramBot.getInstance().execute(sendPhoto);
+            if (msg != null){
+                TelegramBot.getDatabaseManager().incrementGenMap(update.getCallbackQuery().getFrom().getId());
+            }
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
     }
 
     /**

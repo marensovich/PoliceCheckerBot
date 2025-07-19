@@ -609,4 +609,20 @@ public class DatabaseManager {
         return posts;
     }
 
+
+    public void incrementGenMap(long userId) throws SQLException {
+        String sql = "UPDATE Users SET gen_map = gen_map + 1 WHERE user_id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, userId);
+            int affectedRows = statement.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Пользователь с ID " + userId + " не найден");
+            }
+        }
+    }
+
 }

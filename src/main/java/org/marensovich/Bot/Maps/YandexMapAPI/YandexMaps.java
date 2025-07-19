@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 public class YandexMaps {
 
     public InputStream getPhoto(float latitude, float longitude,
-                                float spn, String bbox,
+                                Float spn, String bbox,
                                 Integer z, YandexMapSize mapSize,
                                 YandexMapScale scale, String pt,
                                 String pl, YandexMapLanguage lang,

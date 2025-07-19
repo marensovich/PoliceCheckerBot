@@ -21,14 +21,10 @@ public class YandexMapsMarkers {
     // Метод для добавления метки с полным описанием (стиль, цвет, размер, контент)
     public void addMarker(double longitude, double latitude,
                           MarkerStyle style, MarkerColor color,
-                          MarkerSize size, Integer content) {
+                          MarkerSize size) {
         StringBuilder marker = new StringBuilder();
         marker.append(String.format("%f,%f,", longitude, latitude));
         marker.append(style.getValue()).append(color.getValue()).append(size.getValue());
-
-        if (content != null) {
-            marker.append(content);
-        }
 
         markers.add(marker.toString());
     }

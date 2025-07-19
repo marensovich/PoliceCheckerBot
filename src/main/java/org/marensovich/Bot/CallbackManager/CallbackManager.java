@@ -80,6 +80,7 @@ public class CallbackManager {
 
         // Обработчики для /getpost
         register(new PageInfoHandler());
+        register(new PhotoHandler());
         registerPrefix(new NextPageHandler());
         registerPrefix(new BackPageHandler());
         registerPrefix(new PostDetailHandler());
