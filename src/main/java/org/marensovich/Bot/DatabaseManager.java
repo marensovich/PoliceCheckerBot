@@ -82,13 +82,22 @@ public class DatabaseManager {
                     exp_at TIMESTAMP NOT NULL
                 )""";
 
+        String CREATE_BOTDATA_TABLE_SQL = """
+                CREATE TABLE IF NOT EXISTS BotData (
+                    `key` VARCHAR(255) PRIMARY KEY NOT NULL,
+                    `value` TEXT,
+                    `type` ENUM('string', 'number', 'boolean') NOT NULL DEFAULT 'string',
+                    `description` TEXT
+                )""";
+
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(CREATE_ALL_USERS_TABLE_SQL);
             stmt.executeUpdate(CREATE_USERS_TABLE_SQL);
             stmt.executeUpdate(CREATE_POLICE_DATA_TABLE_SQL);
             stmt.executeUpdate(CREATE_SUBSCRIBES_TABLE_SQL);
-            System.out.println("Таблицы All_Users, Users и Police успешно созданы или уже существовали");
+            stmt.executeUpdate(CREATE_BOTDATA_TABLE_SQL);
+            System.out.println("Таблицы All_Users, Users, BotData и Police успешно созданы или уже существовали");
         } catch (SQLException e) {
             System.err.println("Ошибка при создании таблицы: " + e.getMessage());
             throw new RuntimeException("Не удалось создать таблицу", e);
@@ -623,6 +632,87 @@ public class DatabaseManager {
                 throw new SQLException("Пользователь с ID " + userId + " не найден");
             }
         }
+    }
+
+    public String getStringBotData(String key) {
+        String SQL = "SELECT value FROM BotData WHERE `key` = ? AND `type` = 'string'";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("value");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении строкового значения: " + e.getMessage());
+        }
+        return null;
+    }
+    public Integer getIntValueBotData(String key) {
+        String SQL = "SELECT value FROM BotData WHERE `key` = ? AND `type` = 'number'";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Integer.parseInt(rs.getString("value"));
+                }
+            }
+        } catch (SQLException | NumberFormatException e) {
+            System.err.println("Ошибка при получении числового значения: " + e.getMessage());
+        }
+        return null;
+    }
+    public Boolean getBooleanValueBotData(String key) {
+        String SQL = "SELECT value FROM BotData WHERE `key` = ? AND `type` = 'boolean'";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Boolean.parseBoolean(rs.getString("value"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении boolean значения: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean keyExistsBotData(String key) {
+        String SQL = "SELECT 1 FROM BotData WHERE `key` = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при проверке существования ключа: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public Map<String, Object> getFullRecordBotData(String key) {
+        String SQL = "SELECT * FROM BotData WHERE `key` = ?";
+        Map<String, Object> result = new HashMap<>();
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setString(1, key);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    result.put("value", rs.getString("value"));
+                    result.put("type", rs.getString("type"));
+                    result.put("description", rs.getString("description"));
+                    return result;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении полной записи: " + e.getMessage());
+        }
+        return null;
     }
 
 }
