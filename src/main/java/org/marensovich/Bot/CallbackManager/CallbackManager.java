@@ -10,6 +10,7 @@ import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeDarkHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeLightHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeMenuHandler;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -133,7 +134,7 @@ public class CallbackManager {
             }
         }
 
-        System.out.println("No handler found for: " + callbackData);
+        LoggerUtil.logInfo(getClass(), "No handler found for: " + callbackData);
         return false;
     }
 }

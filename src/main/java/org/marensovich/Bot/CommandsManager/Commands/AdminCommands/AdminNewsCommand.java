@@ -3,6 +3,7 @@ package org.marensovich.Bot.CommandsManager.Commands.AdminCommands;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -69,12 +70,15 @@ public class AdminNewsCommand implements Command {
                     break;
             }
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
             cleanupUserState(userId);
-            sendErrorMessage(update.getMessage().getChatId(), "Ошибка: " + e.getMessage());
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getChatId(), "Ошибка: " + e.getMessage());
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
         }
     }
 
-    public void handleNewsType(Update update, String callbackData) throws TelegramApiException {
+    public void handleNewsType(Update update, String callbackData) {
         Long userId = update.getCallbackQuery().getFrom().getId();
         UserState userState = getUserState(userId);
 
@@ -95,7 +99,7 @@ public class AdminNewsCommand implements Command {
                 update.getCallbackQuery().getMessage().getMessageId());
     }
 
-    public void handleNewsConfirm(Update update) throws TelegramApiException {
+    public void handleNewsConfirm(Update update) {
         Long userId = update.getCallbackQuery().getFrom().getId();
         UserState userState = getUserState(userId);
 
@@ -105,14 +109,14 @@ public class AdminNewsCommand implements Command {
         cleanupUserState(userId);
     }
 
-    public void handleNewsCancel(Update update) throws TelegramApiException {
+    public void handleNewsCancel(Update update) {
         Long userId = update.getCallbackQuery().getFrom().getId();
         sendCancelMessage(update.getCallbackQuery().getMessage().getChatId(),
                 update.getCallbackQuery().getMessage().getMessageId());
         cleanupUserState(userId);
     }
 
-    private void sendNewsTypeOptions(Long chatId) throws TelegramApiException {
+    private void sendNewsTypeOptions(Long chatId){
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText("Выберите таблицу БД для рассылки:");
@@ -135,24 +139,40 @@ public class AdminNewsCommand implements Command {
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
 
-        TelegramBot.getInstance().execute(message);
+        try {
+            TelegramBot.getInstance().execute(message);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
+        }
     }
 
-    private void requestNewsText(Long chatId, Integer messageId) throws TelegramApiException {
+    private void requestNewsText(Long chatId, Integer messageId) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(chatId.toString());
         editMessage.setMessageId(messageId);
         editMessage.setText("Введите текст новости, которую хотите разослать:");
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
+        }
     }
 
-    private void handleNewsText(Update update, UserState userState) throws TelegramApiException {
+    private void handleNewsText(Update update, UserState userState){
         userState.newsText = update.getMessage().getText();
         userState.currentState = State.AWAITING_CONFIRMATION;
         sendConfirmation(update.getMessage().getChatId(), userState);
     }
 
-    private void sendConfirmation(Long chatId, UserState userState) throws TelegramApiException {
+    private void sendConfirmation(Long chatId, UserState userState){
         String recipientDescription = getRecipientDescription(userState.newsType);
 
         SendMessage message = new SendMessage();
@@ -174,7 +194,15 @@ public class AdminNewsCommand implements Command {
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
 
-        TelegramBot.getInstance().execute(message);
+        try {
+            TelegramBot.getInstance().execute(message);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendNewsToUsers(UserState userState) {
@@ -188,7 +216,9 @@ public class AdminNewsCommand implements Command {
             TelegramBot.getInstance().execute(message);
             Thread.sleep(100);
         } catch (Exception e) {
-            System.err.println("Ошибка при отправке новости в группу" + Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_ID") + ": " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при отправке новости в группу" + Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_ID") + ": " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         for (long userId : userIds) {
@@ -200,43 +230,61 @@ public class AdminNewsCommand implements Command {
                 TelegramBot.getInstance().execute(newsMessage);
                 Thread.sleep(100);
             } catch (Exception e) {
-                System.err.println("Ошибка при отправке новости пользователю " + userId + ": " + e.getMessage());
+                LoggerUtil.logError(getClass(), "Ошибка при отправке новости пользователю " + userId + ": " + e.getMessage());
+                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }
 
-    private void sendSuccessMessage(Long chatId, Integer messageId) throws TelegramApiException {
+    private void sendSuccessMessage(Long chatId, Integer messageId){
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(chatId.toString());
         editMessage.setMessageId(messageId);
         editMessage.setText("✅ Новость успешно отправлена!");
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
+        }
     }
 
-    private void sendCancelMessage(Long chatId, Integer messageId) throws TelegramApiException {
+    private void sendCancelMessage(Long chatId, Integer messageId) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(chatId.toString());
         editMessage.setMessageId(messageId);
         editMessage.setText("❌ Отправка новости отменена");
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
+        }
     }
 
     private String getRecipientDescription(int newsType) {
-        switch (newsType) {
-            case 1: return "всем пользователям из All_Users";
-            case 2: return "всем пользователям из Users";
-            case 3: return "всем пользователям из обоих таблиц";
-            default: return "";
-        }
+        return switch (newsType) {
+            case 1 -> "всем пользователям из All_Users";
+            case 2 -> "всем пользователям из Users";
+            case 3 -> "всем пользователям из обоих таблиц";
+            default -> "";
+        };
     }
 
     private long[] getRecipients(int newsType) {
-        switch (newsType) {
-            case 1: return TelegramBot.getDatabaseManager().getAllUsersTableIDs();
-            case 2: return TelegramBot.getDatabaseManager().getUsersTableIDs();
-            case 3: return TelegramBot.getDatabaseManager().getAllUsers();
-            default: return new long[0];
-        }
+        return switch (newsType) {
+            case 1 -> TelegramBot.getDatabaseManager().getAllUsersTableIDs();
+            case 2 -> TelegramBot.getDatabaseManager().getUsersTableIDs();
+            case 3 -> TelegramBot.getDatabaseManager().getAllUsers();
+            default -> new long[0];
+        };
     }
 
     private InlineKeyboardButton createInlineButton(String text, String callbackData) {
@@ -253,16 +301,5 @@ public class AdminNewsCommand implements Command {
     private void cleanupUserState(Long userId) {
         userStates.remove(userId);
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
-    }
-
-    private void sendErrorMessage(Long chatId, String errorText) {
-        try {
-            SendMessage message = new SendMessage();
-            message.setChatId(chatId.toString());
-            message.setText("⚠️ " + errorText);
-            TelegramBot.getInstance().execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
     }
 }

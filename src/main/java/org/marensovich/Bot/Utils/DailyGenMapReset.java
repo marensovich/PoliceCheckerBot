@@ -34,7 +34,8 @@ public class DailyGenMapReset {
             try {
                 TelegramBot.getDatabaseManager().resetAllGenMaps();
             } catch (Exception e) {
-                System.err.println("Ошибка в задании сброса gen_map: " + e.getMessage());
+                LoggerUtil.logError(getClass(), "Ошибка в задании сброса gen_map: " + e.getMessage());
+e.printStackTrace();
             }
         }
     }

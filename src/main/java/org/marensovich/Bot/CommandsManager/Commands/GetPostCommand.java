@@ -12,6 +12,7 @@ import org.marensovich.Bot.Maps.YandexMapAPI.Utils.YandexMapsURL;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexMaps;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -106,8 +107,12 @@ public class GetPostCommand implements Command {
                     break;
             }
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(userId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             cleanupUserState(userId);
-            sendErrorMessage(update.getMessage().getChatId(), "Ошибка: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -128,8 +133,11 @@ public class GetPostCommand implements Command {
             userState.currentState = State.SHOWING_RESULTS;
             showPostsPage(update.getMessage().getChatId(), userState, 0);
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
             cleanupUserState(userId);
-            sendErrorMessage(update.getMessage().getChatId(), "Ошибка при обработке местоположения");
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getChatId(), "Ошибка при обработке местоположения");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getChatId());
         }
     }
 
@@ -164,8 +172,12 @@ public class GetPostCommand implements Command {
             int newPage = Integer.parseInt(parts[1]);
             showPostsPage(chatId, userState, newPage);
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
             cleanupUserState(userId);
-            sendErrorMessage(chatId, "Ошибка навигации: " + e.getMessage());
+            TelegramBot.getInstance().sendErrorMessage(userId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
+
         }
     }
 
@@ -175,9 +187,10 @@ public class GetPostCommand implements Command {
      * @param postId
      */
     public void showPostDetails(Update update, long postId) {
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+        long userId = update.getCallbackQuery().getFrom().getId();
         try {
-            long chatId = update.getCallbackQuery().getMessage().getChatId();
-            long userId = update.getCallbackQuery().getFrom().getId();
+
             UserState userState = getUserState(userId);
 
             userState.lastListPage = userState.currentPage;
@@ -193,7 +206,7 @@ public class GetPostCommand implements Command {
                     .orElse(null);
 
             if (post == null) {
-                sendErrorMessage(chatId, "Пост не найден");
+                TelegramBot.getInstance().sendErrorMessage(chatId, "Пост не найден");
                 return;
             }
 
@@ -202,9 +215,10 @@ public class GetPostCommand implements Command {
             editOrSendMessage(chatId, details, keyboard);
 
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
-            sendErrorMessage(update.getCallbackQuery().getMessage().getChatId(),
-                    "Ошибка при отображении деталей");
+            TelegramBot.getInstance().sendErrorMessage(userId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
         }
     }
 
@@ -220,9 +234,10 @@ public class GetPostCommand implements Command {
 
             showPostsPage(chatId, userState, userState.lastListPage);
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
-            sendErrorMessage(update.getCallbackQuery().getMessage().getChatId(),
-                    "Ошибка при возврате к списку");
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getMessage().getChatId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getMessage().getChatId());
         }
     }
 
@@ -274,7 +289,11 @@ public class GetPostCommand implements Command {
                 lastMessageId = sentMessage.getMessageId();
             }
         } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
         }
     }
 
@@ -308,9 +327,10 @@ public class GetPostCommand implements Command {
      * @param postId
      */
     public void sendPostLocation(Update update, long postId) {
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+        long userId = update.getCallbackQuery().getFrom().getId();
         try {
-            long chatId = update.getCallbackQuery().getMessage().getChatId();
-            long userId = update.getCallbackQuery().getFrom().getId();
+
             UserState userState = getUserState(userId);
 
             List<PolicePost> posts = getNearbyPosts(
@@ -324,7 +344,7 @@ public class GetPostCommand implements Command {
                     .orElse(null);
 
             if (post == null) {
-                sendErrorMessage(chatId, "Пост не найден");
+                TelegramBot.getInstance().sendErrorMessage(chatId, "Пост не найден");
                 return;
             }
 
@@ -337,9 +357,11 @@ public class GetPostCommand implements Command {
 
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
         } catch (Exception e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
-            sendErrorMessage(update.getCallbackQuery().getMessage().getChatId(),
-                    "Ошибка при отправке местоположения поста");
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            throw new RuntimeException(e);
         }
     }
 
@@ -350,7 +372,7 @@ public class GetPostCommand implements Command {
      * @param page
      * @throws TelegramApiException
      */
-    private void showPostsPage(long chatId, UserState userState, int page) throws TelegramApiException {
+    private void showPostsPage(long chatId, UserState userState, int page){
         try {
             userState.currentPage = page;
             List<PolicePost> posts = getNearbyPosts(
@@ -380,8 +402,12 @@ public class GetPostCommand implements Command {
                 editMessage.setReplyMarkup(keyboard);
                 TelegramBot.getInstance().execute(editMessage);
             }
-        } catch (SQLException e) {
-            throw new TelegramApiException("Ошибка при получении данных: " + e.getMessage());
+        } catch (SQLException | TelegramApiException e) {
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -490,7 +516,11 @@ public class GetPostCommand implements Command {
             message.setText("🚫 В радиусе 10 км посты не обнаружены");
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -537,6 +567,8 @@ public class GetPostCommand implements Command {
                     YandexMapTheme.valueOf(userInfo.yandexTheme),
                     YandexMapTypes.valueOf(userInfo.yandexMaptype));
         } catch (IOException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
 
@@ -550,6 +582,10 @@ public class GetPostCommand implements Command {
                 TelegramBot.getDatabaseManager().incrementGenMap(update.getCallbackQuery().getFrom().getId());
             }
         } catch (TelegramApiException e) {
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
@@ -566,25 +602,14 @@ public class GetPostCommand implements Command {
             message.setText("📍 Отправьте ваше местоположение для поиска ближайших постов:");
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Отправка сообщения об ошибке
-     * @param chatId
-     * @param errorText
-     */
-    private void sendErrorMessage(long chatId, String errorText) {
-        try {
-            SendMessage message = new SendMessage();
-            message.setChatId(String.valueOf(chatId));
-            message.setText("⚠️ " + errorText);
-            TelegramBot.getInstance().execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Возвращает состояния пользователя

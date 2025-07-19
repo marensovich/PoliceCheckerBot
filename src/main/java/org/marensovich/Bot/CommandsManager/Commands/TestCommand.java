@@ -4,6 +4,7 @@ import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.*;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexMaps;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -32,7 +33,8 @@ public class TestCommand implements Command {
             TelegramBot.getInstance().execute(sendPhoto);
 
         } catch (Exception e) {
-            System.err.println("[FATAL] Error processing map request:");
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "[FATAL] Error processing map request:");
             e.printStackTrace();
 
             SendMessage errorMsg = new SendMessage();
@@ -41,6 +43,10 @@ public class TestCommand implements Command {
             try {
                 TelegramBot.getInstance().execute(errorMsg);
             } catch (TelegramApiException ex) {
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + ex.getMessage());
+                e.printStackTrace();
+                TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 throw new RuntimeException(ex);
             }
         }

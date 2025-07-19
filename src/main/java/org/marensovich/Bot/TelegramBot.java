@@ -4,7 +4,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CallbackManager.CallbackManager;
 import org.marensovich.Bot.CommandsManager.CommandManager;
 import org.marensovich.Bot.UpdateManager.UpdateHandler;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -62,4 +64,18 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() { return Dotenv.load().get("TELEGRAM_BOT_TOKEN"); }
+
+    public void sendErrorMessage(Long chatId, String text) {
+        try {
+            SendMessage message = new SendMessage();
+            message.setChatId(chatId.toString());
+            message.setText(text);
+            TelegramBot.getInstance().execute(message);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
 }

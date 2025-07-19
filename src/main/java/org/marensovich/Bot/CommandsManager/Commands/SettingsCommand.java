@@ -5,6 +5,7 @@ import org.marensovich.Bot.TelegramBot;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapLanguage;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTypes;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -90,6 +91,10 @@ public class SettingsCommand implements Command {
         try {
             TelegramBot.getInstance().execute(sendMessage);
         } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             throw new RuntimeException(e);
         }
     }
@@ -197,7 +202,7 @@ public class SettingsCommand implements Command {
         return markup;
     }
 
-    public void handleThemeCallback(Update update) throws TelegramApiException {
+    public void handleThemeCallback(Update update) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
@@ -234,20 +239,36 @@ public class SettingsCommand implements Command {
 
         editMessage.setText("Выберите тему:");
         editMessage.setReplyMarkup(markup);
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
+            throw new RuntimeException(e);
+        }
     }
 
-    public void handleQuitCallback(Update update) throws TelegramApiException {
+    public void handleQuitCallback(Update update) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessage.setText("Вы успешно вышли из настроек!");
         editMessage.setReplyMarkup(null);
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
+            throw new RuntimeException(e);
+        }
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getMessage().getChatId());
     }
 
-    public void handleMapTypeCallback(Update update) throws TelegramApiException {
+    public void handleMapTypeCallback(Update update) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
@@ -280,10 +301,18 @@ public class SettingsCommand implements Command {
 
         editMessage.setText("Выберите тип карты:");
         editMessage.setReplyMarkup(markup);
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
+            throw new RuntimeException(e);
+        }
     }
 
-    public void handleLangCallback(Update update) throws TelegramApiException {
+    public void handleLangCallback(Update update) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
@@ -316,10 +345,18 @@ public class SettingsCommand implements Command {
 
         editMessage.setText("Выберите язык:");
         editMessage.setReplyMarkup(markup);
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
+            throw new RuntimeException(e);
+        }
     }
 
-    public void handleBackCallback(Update update) throws TelegramApiException {
+    public void handleBackCallback(Update update) {
         long userId = update.getCallbackQuery().getFrom().getId();
 
         saveCurrentSettings(userId);
@@ -329,7 +366,15 @@ public class SettingsCommand implements Command {
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessage.setText(getSettingsText(userId));
         editMessage.setReplyMarkup(getSettingsKeyboard(userId));
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
+            throw new RuntimeException(e);
+        }
     }
 
     private void saveCurrentSettings(long userId) {
@@ -340,12 +385,16 @@ public class SettingsCommand implements Command {
 
             TelegramBot.getDatabaseManager().updateUserSettings(userId, theme, mapType, lang);
         } catch (IllegalArgumentException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(userId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             throw new RuntimeException(e);
         }
     }
 
 
-    public void handleSaveCallback(Update update) throws TelegramApiException {
+    public void handleSaveCallback(Update update) {
         long userId = update.getCallbackQuery().getFrom().getId();
         YandexMapTheme theme = YandexMapTheme.valueOf(currentDisplayTheme);
         YandexMapTypes mapType = YandexMapTypes.valueOf(currentDisplayMapType);
@@ -357,10 +406,18 @@ public class SettingsCommand implements Command {
         editMessage.setChatId(update.getCallbackQuery().getMessage().getChatId().toString());
         editMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessage.setText("Настройки успешно сохранены");
-        TelegramBot.getInstance().execute(editMessage);
+        try {
+            TelegramBot.getInstance().execute(editMessage);
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
+            throw new RuntimeException(e);
+        }
     }
 
-    public void handleOptionSelected(Update update, String optionType, String optionValue) throws TelegramApiException {
+    public void handleOptionSelected(Update update, String optionType, String optionValue) {
         switch (optionType) {
             case "theme" -> {
                 currentApiTheme = optionValue;

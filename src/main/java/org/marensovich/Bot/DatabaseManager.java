@@ -8,6 +8,7 @@ import org.marensovich.Bot.Maps.MapUtils.Distance;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapLanguage;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
 import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTypes;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.sql.*;
@@ -25,7 +26,7 @@ public class DatabaseManager {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            System.err.println("MySQL JDBC Driver не найден!");
+            LoggerUtil.logError(DatabaseManager.class, "MySQL JDBC Driver не найден!");
             e.printStackTrace();
             System.exit(1);
         }
@@ -35,7 +36,8 @@ public class DatabaseManager {
         try (Connection conn = getConnection()) {
             return conn.isValid(2);
         } catch (SQLException e) {
-            System.err.println("Ошибка подключения к БД: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка подключения к БД: " + e.getMessage());
+e.printStackTrace();
             return false;
         }
     }
@@ -97,9 +99,10 @@ public class DatabaseManager {
             stmt.executeUpdate(CREATE_POLICE_DATA_TABLE_SQL);
             stmt.executeUpdate(CREATE_SUBSCRIBES_TABLE_SQL);
             stmt.executeUpdate(CREATE_BOTDATA_TABLE_SQL);
-            System.out.println("Таблицы All_Users, Users, BotData и Police успешно созданы или уже существовали");
+            LoggerUtil.logInfo(getClass(), "Таблицы All_Users, Users, BotData и Police успешно созданы или уже существовали");
         } catch (SQLException e) {
-            System.err.println("Ошибка при создании таблицы: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при создании таблицы: " + e.getMessage());
+e.printStackTrace();
             throw new RuntimeException("Не удалось создать таблицу", e);
         }
     }
@@ -113,7 +116,8 @@ public class DatabaseManager {
                 return rs.next();
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке пользователя: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке пользователя: " + e.getMessage());
+e.printStackTrace();
             return false;
         }
     }
@@ -125,9 +129,10 @@ public class DatabaseManager {
             stmt.setLong(1, userId);
             stmt.setTimestamp(2, Timestamp.from(Instant.now()));
             stmt.executeUpdate();
-            System.out.println("Пользователь " + userId + " успешно добавлен");
+            LoggerUtil.logInfo(getClass(), "Пользователь " + userId + " успешно добавлен");
         } catch (SQLException e) {
-            System.err.println("Ошибка при добавлении пользователя: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при добавлении пользователя: " + e.getMessage());
+e.printStackTrace();
             throw new RuntimeException("Не удалось добавить пользователя", e);
         }
     }
@@ -143,7 +148,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении времени регистрации: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении времени регистрации: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -157,7 +163,9 @@ public class DatabaseManager {
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении количества пользователей: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении количества пользователей: " + e.getMessage());
+            e.printStackTrace();
+            e.printStackTrace();
         }
         return 0;
     }
@@ -171,7 +179,9 @@ public class DatabaseManager {
                 return rs.next();
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке пользователя: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке пользователя: " + e.getMessage());
+            e.printStackTrace();
+            e.printStackTrace();
             return false;
         }
     }
@@ -182,10 +192,11 @@ public class DatabaseManager {
              PreparedStatement stmt = conn.prepareStatement(SQL)) {
             stmt.setLong(1, userId);
             stmt.executeUpdate();
-            System.out.println("Пользователь " + userId + " успешно добавлен");
+            LoggerUtil.logInfo(getClass(), "Пользователь " + userId + " успешно добавлен");
         } catch (SQLException e) {
-            System.err.println("Ошибка при добавлении пользователя: " + e.getMessage());
-            throw new RuntimeException("Не удалось добавить пользователя", e);
+            LoggerUtil.logError(getClass(), "Ошибка при добавлении пользователя: " + e.getMessage());
+            e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
@@ -219,6 +230,7 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка при работе бота: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -237,7 +249,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке статуса администратора: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке статуса администратора: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -259,10 +272,10 @@ public class DatabaseManager {
                 int rowsUpdated = stmtUpdate.executeUpdate();
 
                 if (rowsAdded > 0 && rowsUpdated > 0) {
-                    System.out.println("Подписка " + type + " успешно выдана пользователю " + userid);
+                    LoggerUtil.logInfo(getClass(), "Подписка " + type + " успешно выдана пользователю " + userid);
                     conn.commit();
                 } else {
-                    System.out.println("Пользователь с ID " + userid + " не найден или ошибка при добавлении.");
+                    LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userid + " не найден или ошибка при добавлении.");
                     conn.rollback();
                 }
             } catch (SQLException e) {
@@ -272,7 +285,8 @@ public class DatabaseManager {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            System.out.println("Ошибка при выдаче подписки пользователю " + userid + ": " + e.getMessage());
+            LoggerUtil.logInfo(getClass(), "Ошибка при выдаче подписки пользователю " + userid + ": " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Не удалось выдать подписку пользователю " + userid, e);
         }
     }
@@ -295,10 +309,10 @@ public class DatabaseManager {
                 int rowsDeleted = stmtDeleteSubs.executeUpdate();
 
                 if (rowsUpdated > 0) {
-                    System.out.println("Подписка пользователя " + userid + " успешно обнулена.");
+                    LoggerUtil.logInfo(getClass(), "Подписка пользователя " + userid + " успешно обнулена.");
                     conn.commit();
                 } else {
-                    System.out.println("Пользователь с ID " + userid + " не найден или ошибка при обновлении.");
+                    LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userid + " не найден или ошибка при обновлении.");
                     conn.rollback();
                 }
             } catch (SQLException e) {
@@ -308,7 +322,8 @@ public class DatabaseManager {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            System.out.println("Ошибка при сбросе подписки пользователю " + userid + ": " + e.getMessage());
+            LoggerUtil.logInfo(getClass(), "Ошибка при сбросе подписки пользователю " + userid + ": " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Не удалось сбросить подписку пользователю " + userid, e);
         }
     }
@@ -340,7 +355,8 @@ public class DatabaseManager {
             stmt.setString(5, comment);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Не удалось добавить пост", e);
+            LoggerUtil.logError(getClass(), "Не удалось добавить пост" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -355,10 +371,10 @@ public class DatabaseManager {
                 int rowsUpdated = stmt.executeUpdate();
 
                 if (rowsUpdated > 0) {
-                    System.out.println("Настройки пользователя " + userId + " успешно обновлены.");
+                    LoggerUtil.logInfo(getClass(), "Настройки пользователя " + userId + " успешно обновлены.");
                     conn.commit();
                 } else {
-                    System.out.println("Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                    LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
                     conn.rollback();
                 }
             } catch (SQLException e){
@@ -376,10 +392,10 @@ public class DatabaseManager {
             int rowsUpdated = stmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                System.out.println("Настройки пользователя " + userId + " успешно обновлены.");
+                LoggerUtil.logInfo(getClass(), "Настройки пользователя " + userId + " успешно обновлены.");
                 conn.commit();
             } else {
-                System.out.println("Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
                 conn.rollback();
             }
         } catch (SQLException e){
@@ -397,10 +413,10 @@ public class DatabaseManager {
             int rowsUpdated = stmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                System.out.println("Настройки пользователя " + userId + " успешно обновлены.");
+                LoggerUtil.logInfo(getClass(), "Настройки пользователя " + userId + " успешно обновлены.");
                 conn.commit();
             } else {
-                System.out.println("Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
+                LoggerUtil.logInfo(getClass(), "Пользователь с ID " + userId + " не найден или ошибка при обновлении.");
                 conn.rollback();
             }
         } catch (SQLException e){
@@ -645,7 +661,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении строкового значения: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении строкового значения: " + e.getMessage());
+e.printStackTrace();
         }
         return null;
     }
@@ -660,7 +677,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException | NumberFormatException e) {
-            System.err.println("Ошибка при получении числового значения: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении числового значения: " + e.getMessage());
+e.printStackTrace();
         }
         return null;
     }
@@ -675,7 +693,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении boolean значения: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении boolean значения: " + e.getMessage());
+e.printStackTrace();
         }
         return null;
     }
@@ -689,7 +708,8 @@ public class DatabaseManager {
                 return rs.next();
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке существования ключа: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при проверке существования ключа: " + e.getMessage());
+e.printStackTrace();
         }
         return false;
     }
@@ -710,7 +730,8 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка при получении полной записи: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при получении полной записи: " + e.getMessage());
+e.printStackTrace();
         }
         return null;
     }
@@ -722,10 +743,11 @@ public class DatabaseManager {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             int updatedRows = stmt.executeUpdate();
-            System.out.println("Сброшено gen_map для " + updatedRows + " пользователей");
+            LoggerUtil.logInfo(getClass(), "Сброшено gen_map для " + updatedRows + " пользователей");
 
         } catch (SQLException e) {
-            System.err.println("Ошибка при сбросе gen_map: " + e.getMessage());
+            LoggerUtil.logError(getClass(), "Ошибка при сбросе gen_map: " + e.getMessage());
+e.printStackTrace();
         }
     }
 

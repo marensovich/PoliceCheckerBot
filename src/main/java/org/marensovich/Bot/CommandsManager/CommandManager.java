@@ -7,6 +7,7 @@ import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminRemoveSub
 import org.marensovich.Bot.CommandsManager.Commands.AdminCommands.AdminUserInfoCommand;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -208,7 +209,9 @@ public class CommandManager {
         try {
             TelegramBot.getInstance().execute(msg);
         } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -218,7 +221,7 @@ public class CommandManager {
      * @param command
      */
     public void setActiveCommand(Long userId, Command command) {
-        System.out.println("Команда " + command.getName() + " закреплена за пользователем " + userId);
+        LoggerUtil.logInfo(getClass(), "Команда " + command.getName() + " закреплена за пользователем " + userId);
         activeCommands.put(userId, command);
     }
 
@@ -227,7 +230,7 @@ public class CommandManager {
      * @param userId
      */
     public void unsetActiveCommand(Long userId) {
-        System.out.println("Команда, закрепленная за пользователем " + userId + " удалена");
+        LoggerUtil.logInfo(getClass(), "Команда, закрепленная за пользователем " + userId + " удалена");
         activeCommands.remove(userId);
     }
 

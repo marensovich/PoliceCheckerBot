@@ -4,6 +4,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.LoggerUtil;
+import org.telegram.telegrambots.meta.api.methods.forum.CloseForumTopic;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -46,9 +48,11 @@ public class RegisterCommand implements Command {
                 sendSubscriptionRequest(chatId);
             }
         } catch (TelegramApiException e) {
-            sendErrorMessage(chatId, "⚠️ Ошибка при проверке подписки. Попробуйте позже.");
+            sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
     }
@@ -88,7 +92,9 @@ public class RegisterCommand implements Command {
         try {
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -104,7 +110,9 @@ public class RegisterCommand implements Command {
             }
         } catch (Exception e) {
             sendErrorMessage(chatId, "⚠️ Ошибка при регистрации. Попробуйте позже.");
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -123,7 +131,9 @@ public class RegisterCommand implements Command {
             message.setText(text);
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }
