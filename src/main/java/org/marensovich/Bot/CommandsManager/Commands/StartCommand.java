@@ -17,7 +17,13 @@ public class StartCommand implements Command {
         TelegramBot.getInstance().getCommandManager().setActiveCommand(update.getMessage().getFrom().getId(), this);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
-        sendMessage.setText("Бот пока в разработке, следите за новостями.");
+        sendMessage.setText("""
+                <b> Добро пожаловать. </b> 
+                
+                Данный бот направлен на сбор и информирование о постах ДПС. 
+                Эффективная работа и польза бота напрямую зависит от вас. С возможностями бота вы можете ознакомиться в /help
+                """);
+        sendMessage.enableHtml(true);
         try {
             TelegramBot.getInstance().execute(sendMessage);
         } catch (TelegramApiException e) {
