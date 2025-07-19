@@ -715,4 +715,18 @@ public class DatabaseManager {
         return null;
     }
 
+    public void resetAllGenMaps() {
+        String sql = "UPDATE Users SET gen_map = 0";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            int updatedRows = stmt.executeUpdate();
+            System.out.println("Сброшено gen_map для " + updatedRows + " пользователей");
+
+        } catch (SQLException e) {
+            System.err.println("Ошибка при сбросе gen_map: " + e.getMessage());
+        }
+    }
+
 }

@@ -3,6 +3,7 @@ package org.marensovich.Bot.CommandsManager.Commands;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.Data.UserInfo;
 import org.marensovich.Bot.DatabaseManager;
+import org.marensovich.Bot.Maps.YandexMapAPI.YandexData.YandexMapTheme;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -51,12 +52,12 @@ public class UserInfoCommand implements Command {
         String message = String.format(
                           """
                         <b>📋 Информация о пользователе:</b>
-                        <b> 🆔 ID: </b>%d
+                        <b> 🆔 ID: </b>%s
                         <b> 🌐 Язык: </b>%s
                         <b> 🎨 Тема: </b>%s
                         <b> 🗺️ Тип карты: </b>%s
                         <b> 🔔 Подписка: </b>%s
-                        <b> 🗺️ Генерация карты: </b>%d
+                        <b> 🗺️ Генерация карты: </b>%s
                         <b> 📝 Зарегистрирован: </b>%s
                         <b> 💳 Тип подписки: </b>%s
                         <b> ⏰ Истекает подписка: </b>%s""",

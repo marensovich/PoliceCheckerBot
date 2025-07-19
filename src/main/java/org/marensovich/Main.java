@@ -3,6 +3,7 @@ package org.marensovich;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
+import org.marensovich.Bot.Utils.DailyGenMapReset;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -25,6 +26,9 @@ public class Main {
 
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(new TelegramBot(databaseManager));
+
+            new DailyGenMapReset().startDailyReset();
+            
         } catch (UnsupportedEncodingException | TelegramApiException e) {
             throw new RuntimeException("Ошибка запуска бота", e);
         }
