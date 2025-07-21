@@ -95,6 +95,8 @@ public class AdminUserInfoCommand implements Command {
             limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP");
         } else if (userData.subscribe.equals("premium")){
             limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM");
+        } else if (userData.subscribe.equals("none")){
+            limitgenmap = userData.genMap + "/" + TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_NONE");;
         } else {
             limitgenmap = "Недоступно";
         }

@@ -532,21 +532,37 @@ public class GetPostCommand implements Command {
      * Метод отправки фотографии карты с точками постов
      * @param update
      */
-    public void handleSendMap(Update update) throws SQLException {
+    public void handleSendMap(Update update) {
         UserState userState = getUserState(update.getCallbackQuery().getFrom().getId());
         UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getCallbackQuery().getFrom().getId());
 
-        if (userInfo.subscribe.equals("vip") && userInfo.genMap >= 3){
+        if (userInfo.subscribe.equals("vip") && userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP")){
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан.");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             return;
-        }
-        if (userInfo.subscribe.equals("premium") && userInfo.genMap >= 10){
+        } else if (userInfo.subscribe.equals("premium") && userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM")){
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан.");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+            return;
+        } else if (userInfo.subscribe.equals("none") && userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_NONE")){
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан.");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             return;
         }
 
-        List<PolicePost> posts = getNearbyPosts(
-                userState.userLocation.getLatitude(),
-                userState.userLocation.getLongitude()
-        );
+        List<PolicePost> posts = null;
+        try {
+            posts = getNearbyPosts(
+                    userState.userLocation.getLatitude(),
+                    userState.userLocation.getLongitude()
+            );
+        } catch (SQLException e) {
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
         YandexMapsMarkers yandexMapsMarkers = new YandexMapsMarkers();
 
@@ -571,6 +587,8 @@ public class GetPostCommand implements Command {
                     YandexMapTheme.valueOf(userInfo.yandexTheme),
                     YandexMapTypes.valueOf(userInfo.yandexMaptype));
         } catch (IOException e) {
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -583,7 +601,15 @@ public class GetPostCommand implements Command {
         try {
             Message msg = TelegramBot.getInstance().execute(sendPhoto);
             if (msg != null){
-                TelegramBot.getDatabaseManager().incrementGenMap(update.getCallbackQuery().getFrom().getId());
+                try {
+                    TelegramBot.getDatabaseManager().incrementGenMap(update.getCallbackQuery().getFrom().getId());
+                } catch (SQLException e) {
+                    TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+                    TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+                    LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
             }
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
