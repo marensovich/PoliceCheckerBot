@@ -157,7 +157,7 @@ public class CommandManager {
 
             if (!isRegistered && !isAllowedUnauthorizedCommand(commandKey)) {
                 sendMessage(update.getMessage().getChatId(),
-                        "Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
+                        "\uD83D\uDCE8 Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
                 return true;
             }
 

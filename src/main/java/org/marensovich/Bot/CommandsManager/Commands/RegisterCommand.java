@@ -106,7 +106,7 @@ public class RegisterCommand implements Command {
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             } else {
                 TelegramBot.getDatabaseManager().addUser(userId);
-                sendSuccessMessage(chatId, "✅ Регистрация прошла успешно!\nТеперь вам открыты часть функций бота, подробнее в /help.");
+                sendSuccessMessage(chatId, "<b>✅ Регистрация прошла успешно!</b>\nТеперь вам открыты часть функций бота, подробнее в /help.");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             }
         } catch (Exception e) {
@@ -122,7 +122,7 @@ public class RegisterCommand implements Command {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
-        message.setParseMode("Markdown");
+        message.enableHtml(true);
         TelegramBot.getInstance().execute(message);
     }
 }

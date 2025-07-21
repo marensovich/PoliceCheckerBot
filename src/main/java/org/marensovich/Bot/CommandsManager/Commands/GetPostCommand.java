@@ -249,12 +249,12 @@ public class GetPostCommand implements Command {
      */
     private String formatPostDetails(PolicePost post, UserState userState) {
         return String.format(
-                "🔍 Детали поста:\n\n" +
-                        "Тип: %s%s\n" +
-                        "Дата: %s\n" +
-                        "Расстояние: %s\n" +
-                        "Комментарий: %s\n\n" +
-                        "Координаты: %.6f, %.6f",
+                "\uD83D\uDD0D <b>Информация поста:</b>\n\n" +
+                        "<b>Тип:</b> %s%s\n" +
+                        "<b>Дата:</b> %s\n" +
+                        "<b>Расстояние:</b> %s\n" +
+                        "<b>Комментарий:</b> %s\n\n" +
+                        "<b>Координаты:</b> %.6f, %.6f",
                 post.postType,
                 post.expired ? " (Неактуален)" : "",
                 post.registrationTime.toLocalDateTime(),
@@ -279,11 +279,13 @@ public class GetPostCommand implements Command {
                 editMessage.setMessageId(lastMessageId);
                 editMessage.setText(text);
                 editMessage.setReplyMarkup(keyboard);
+                editMessage.enableHtml(true);
                 TelegramBot.getInstance().execute(editMessage);
             } else {
                 SendMessage message = new SendMessage();
                 message.setChatId(String.valueOf(chatId));
                 message.setText(text);
+                message.enableHtml(true);
                 message.setReplyMarkup(keyboard);
                 Message sentMessage = TelegramBot.getInstance().execute(message);
                 lastMessageId = sentMessage.getMessageId();
@@ -390,15 +392,17 @@ public class GetPostCommand implements Command {
             if (lastMessageId == null) {
                 SendMessage message = new SendMessage();
                 message.setChatId(String.valueOf(chatId));
-                message.setText("Ближайшие посты ДПС:");
+                message.setText("\uD83D\uDE94 Ближайшие посты ДПС:");
                 message.setReplyMarkup(keyboard);
+                message.enableHtml(true);
                 Message sentMessage = TelegramBot.getInstance().execute(message);
                 lastMessageId = sentMessage.getMessageId();
             } else {
                 EditMessageText editMessage = new EditMessageText();
                 editMessage.setChatId(String.valueOf(chatId));
                 editMessage.setMessageId(lastMessageId);
-                editMessage.setText("Ближайшие посты ДПС:");
+                editMessage.setText("\uD83D\uDE94 Ближайшие посты ДПС:");
+                editMessage.enableHtml(true);
                 editMessage.setReplyMarkup(keyboard);
                 TelegramBot.getInstance().execute(editMessage);
             }
@@ -599,7 +603,7 @@ public class GetPostCommand implements Command {
         try {
             SendMessage message = new SendMessage();
             message.setChatId(String.valueOf(chatId));
-            message.setText("📍 Отправьте ваше местоположение для поиска ближайших постов:");
+            message.setText("📍 Отправьте вашу геопозицию для поиска ближайших постов:");
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
