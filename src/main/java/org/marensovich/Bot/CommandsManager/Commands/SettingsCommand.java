@@ -42,7 +42,7 @@ public class SettingsCommand implements Command {
 
 
 
-    record LangOption(String callback, String displayName, String apiValue) {}
+    private record LangOption(String callback, String displayName, String apiValue) {}
     private static final List<LangOption> LANGUAGES = List.of(
             new LangOption(CALLBACK_LANG_RU_RU, "Русский язык", "ru_RU"),
             new LangOption(CALLBACK_LANG_EN_US, "Английский язык", "en_US"),
@@ -50,7 +50,7 @@ public class SettingsCommand implements Command {
             new LangOption(CALLBACK_LANG_TR_TR, "Турецкий язык", "tr_TR")
     );
 
-    record MapOption(String callback, String displayName, String apiValue) {}
+    private record MapOption(String callback, String displayName, String apiValue) {}
     private static final List<MapOption> MAP_TYPES = List.of(
             new MapOption(CALLBACK_MAPTYPE_MAP, "Обычная карта", "map"),
             new MapOption(CALLBACK_MAPTYPE_TRANSIT, "Транспортная карта", "transit"),
@@ -58,7 +58,7 @@ public class SettingsCommand implements Command {
             new MapOption(CALLBACK_MAPTYPE_ADMIN, "Административная карта", "admin")
     );
 
-    record ThemeOption(String callback, String displayName, String apiValue) {}
+    private record ThemeOption(String callback, String displayName, String apiValue) {}
     private static final List<ThemeOption> THEMES = List.of(
             new ThemeOption(CALLBACK_THEME_DARK, "Темная", "dark"),
             new ThemeOption(CALLBACK_THEME_LIGHT, "Светлая", "light")

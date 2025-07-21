@@ -537,15 +537,15 @@ public class GetPostCommand implements Command {
         UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getCallbackQuery().getFrom().getId());
 
         if (userInfo.subscribe.equals("vip") && userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP")){
-            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан.");
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             return;
         } else if (userInfo.subscribe.equals("premium") && userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM")){
-            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан.");
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             return;
         } else if (userInfo.subscribe.equals("none") && userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_NONE")){
-            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан.");
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             return;
         }
