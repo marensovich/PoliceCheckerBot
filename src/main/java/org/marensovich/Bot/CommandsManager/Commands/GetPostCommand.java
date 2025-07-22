@@ -436,6 +436,7 @@ public class GetPostCommand implements Command {
                 message.setText("\uD83D\uDE94 Ближайшие посты ДПС:");
                 message.setReplyMarkup(TelegramBot.getInstance().removeKeyboard());
                 message.setReplyMarkup(keyboard);
+                message.setReplyMarkup(TelegramBot.getInstance().removeKeyboard());
                 message.enableHtml(true);
                 Message sentMessage = TelegramBot.getInstance().execute(message);
                 lastMessageId = sentMessage.getMessageId();
