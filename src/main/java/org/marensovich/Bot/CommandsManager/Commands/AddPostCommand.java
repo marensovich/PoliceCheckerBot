@@ -81,8 +81,7 @@ public class AddPostCommand implements Command {
         } catch (Exception e) {
             TelegramBot.getInstance().sendErrorMessage(userId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             cleanupUserState(userId);
             TelegramBot.getInstance().sendErrorMessage(update.getMessage().getChatId(), "Ошибка: " + e.getMessage());
             throw new RuntimeException(e);
@@ -170,8 +169,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
 
@@ -184,8 +182,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }
@@ -200,8 +197,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }
@@ -217,8 +213,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }
@@ -245,8 +240,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }
@@ -345,8 +339,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }
@@ -360,8 +353,7 @@ public class AddPostCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }

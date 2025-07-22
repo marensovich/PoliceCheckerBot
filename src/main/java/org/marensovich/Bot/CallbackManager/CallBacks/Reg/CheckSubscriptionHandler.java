@@ -56,7 +56,7 @@ public class CheckSubscriptionHandler implements TelegramCallbackHandler {
             TelegramBot.getInstance().execute(response);
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
-            e.printStackTrace();
+            
         }
     }
 

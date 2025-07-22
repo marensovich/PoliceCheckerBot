@@ -70,8 +70,8 @@ public class UserInfoCommand implements Command {
             try {
                 TelegramBot.getInstance().execute(sendMessage);
             } catch (TelegramApiException e) {
-                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                e.printStackTrace();
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+                
                 TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
                 throw new RuntimeException(e);
@@ -144,8 +144,8 @@ public class UserInfoCommand implements Command {
         try {
             TelegramBot.getInstance().execute(sendMessage);
         } catch (TelegramApiException e) {
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+            
             TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             throw new RuntimeException(e);

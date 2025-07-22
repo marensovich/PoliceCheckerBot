@@ -26,8 +26,7 @@ public class CancelCommand implements Command {
             } catch (TelegramApiException e) {
                 TelegramBot.getInstance().sendErrorMessage(update.getMessage().getChatId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getChatId());
-                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                e.printStackTrace();
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
                 throw new RuntimeException(e);
             }
             return;
@@ -40,8 +39,7 @@ public class CancelCommand implements Command {
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(update.getMessage().getChatId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getChatId());
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
     }

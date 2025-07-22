@@ -34,8 +34,8 @@ public class UpdateHandler {
                             try {
                                 TelegramBot.getInstance().execute(message);
                             } catch (TelegramApiException e) {
-                                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                                e.printStackTrace();
+                                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+                                
                                 throw new RuntimeException(e);
                             }
                         }
@@ -57,8 +57,8 @@ public class UpdateHandler {
                     try {
                         TelegramBot.getInstance().execute(errorMsg);
                     } catch (TelegramApiException e) {
-                        LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                        e.printStackTrace();
+                        LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+                        
                         throw new RuntimeException(e);
                     }
                 }
