@@ -1,0 +1,14 @@
+# version: '3.8'
+#
+# services:
+#   app:
+#     container_name: "PoliceCheckerBot"
+#     build: .
+#     ports:
+#       - "8082:8080"
+#     environment:
+#       - DB_URL=jdbc:mariadb://mariadb:3306/${DOCKER_DB_NAME}
+#       - DB_USER=${DOCKER_DB_USER}
+#       - DB_PASSWORD=${DOCKER_DB_PASSWORD}
+#     restart: unless-stopped
+#

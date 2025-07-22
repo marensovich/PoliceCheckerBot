@@ -2,27 +2,50 @@ package org.marensovich.Bot.CommandsManager.Commands;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
-import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
 import org.marensovich.Bot.Utils.LoggerUtil;
-import org.telegram.telegrambots.meta.api.methods.forum.CloseForumTopic;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class RegisterCommand implements Command {
 
     public static final String CALLBACK_CONFIRM = "check_subscription";
 
-    private static final String CHANNEL_ID = Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_ID");
-    private static final String CHANNEL_LINK = Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_LINK");
+    private static final Map<String, String> CHANNELS = initChannels();
+
+    private static Map<String, String> initChannels() {
+        Map<String, String> channels = new LinkedHashMap<>();
+
+        String[] ids = Dotenv.load().get("TELEGRAM_REQUIRED_SUB_CHANNELS").split(",\\s*");
+        String[] links = Dotenv.load().get("TELEGRAM_REQUIRED_SUB_CHANNELS_LINK").split(",\\s*");
+
+        if (ids.length != links.length) {
+            throw new IllegalStateException("Количество ID каналов и ссылок не совпадает");
+        }
+
+        for (int i = 0; i < ids.length; i++) {
+            channels.put(ids[i].trim(), links[i].trim());
+        }
+
+        return Collections.unmodifiableMap(channels);
+    }
+
+    public static Map<String, String> getChannels() {
+        return CHANNELS;
+    }
+
+    public static String getChannelLink(String channelId) {
+        return CHANNELS.get(channelId);
+    }
 
     @Override
     public String getName() {
@@ -37,12 +60,20 @@ public class RegisterCommand implements Command {
         TelegramBot.getInstance().getCommandManager().setActiveCommand(userId, this);
 
         try {
-            GetChatMember getChatMember = new GetChatMember();
-            getChatMember.setChatId(CHANNEL_ID);
-            getChatMember.setUserId(userId);
-            ChatMember userMember = TelegramBot.getInstance().execute(getChatMember);
+            boolean isSubscribedToAll = true;
+            for (String channelId : CHANNELS.keySet()) {
+                GetChatMember getChatMember = new GetChatMember();
+                getChatMember.setChatId(channelId);
+                getChatMember.setUserId(userId);
+                ChatMember userMember = TelegramBot.getInstance().execute(getChatMember);
 
-            if (isMember(userMember.getStatus())) {
+                if (!isMember(userMember.getStatus())) {
+                    isSubscribedToAll = false;
+                    break;
+                }
+            }
+
+            if (isSubscribedToAll) {
                 registerUser(userId, chatId);
             } else {
                 sendSubscriptionRequest(chatId);
@@ -64,19 +95,21 @@ public class RegisterCommand implements Command {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText("📢 *Требуется подписка*\n\n" +
-                "Для продолжения работы с ботом необходимо подписаться на наш канал.\n" +
+                "Для продолжения работы с ботом необходимо подписаться на наши каналы.\n" +
                 "После подписки нажмите кнопку *\"Проверить подписку\"*");
         message.setParseMode("Markdown");
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
-        List<InlineKeyboardButton> subscribeRow = new ArrayList<>();
-        InlineKeyboardButton subscribeButton = new InlineKeyboardButton();
-        subscribeButton.setText("Подписаться на канал ▼");
-        subscribeButton.setUrl(CHANNEL_LINK);
-        subscribeRow.add(subscribeButton);
-        keyboard.add(subscribeRow);
+        for (Map.Entry<String, String> entry : CHANNELS.entrySet()) {
+            List<InlineKeyboardButton> channelRow = new ArrayList<>();
+            InlineKeyboardButton channelButton = new InlineKeyboardButton();
+            channelButton.setText("Подписаться на канал " + getChannelName(entry.getKey()));
+            channelButton.setUrl(entry.getValue());
+            channelRow.add(channelButton);
+            keyboard.add(channelRow);
+        }
 
         List<InlineKeyboardButton> checkRow = new ArrayList<>();
         InlineKeyboardButton checkButton = new InlineKeyboardButton();
@@ -99,6 +132,18 @@ public class RegisterCommand implements Command {
         }
     }
 
+    public String getChannelName(String channelId) {
+        try {
+            GetChat getChat = new GetChat();
+            getChat.setChatId(channelId);
+            Chat chat = TelegramBot.getInstance().execute(getChat);
+            return chat.getTitle();
+        } catch (TelegramApiException e) {
+            LoggerUtil.logError(getClass(), "Не удалось получить имя канала: " + e.getMessage());
+            return "наш канал";
+        }
+    }
+
     public void registerUser(Long userId, Long chatId) {
         try {
             if (TelegramBot.getDatabaseManager().checkUsersExists(userId)) {
@@ -106,7 +151,7 @@ public class RegisterCommand implements Command {
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             } else {
                 TelegramBot.getDatabaseManager().addUser(userId);
-                sendSuccessMessage(chatId, "✅ Регистрация прошла успешно!\nТеперь вам открыты часть функций бота, подробнее в /help.");
+                sendSuccessMessage(chatId, "<b>✅ Регистрация прошла успешно!</b>\nТеперь вам открыты часть функций бота, подробнее в /help.");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
             }
         } catch (Exception e) {
@@ -122,7 +167,7 @@ public class RegisterCommand implements Command {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
-        message.setParseMode("Markdown");
+        message.enableHtml(true);
         TelegramBot.getInstance().execute(message);
     }
 }

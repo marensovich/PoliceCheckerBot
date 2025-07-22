@@ -33,7 +33,7 @@ public class CancelCommand implements Command {
         }
         SendMessage msg = new SendMessage();
         msg.setChatId(update.getMessage().getChatId().toString());
-        msg.setText("Активные команды с вашей стороны ботом не обрабатываются");
+        msg.setText("❌ Нет активных команд");
         try {
             TelegramBot.getInstance().execute(msg);
         } catch (TelegramApiException e) {

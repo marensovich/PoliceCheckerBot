@@ -23,12 +23,17 @@ import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -248,21 +253,55 @@ public class GetPostCommand implements Command {
      * @return
      */
     private String formatPostDetails(PolicePost post, UserState userState) {
+        ZoneId moscowZone = ZoneId.of("Europe/Moscow");
+        ZonedDateTime postTime = post.registrationTime.toLocalDateTime()
+                .atZone(ZoneOffset.UTC)
+                .withZoneSameInstant(moscowZone);
+
+        ZonedDateTime now = ZonedDateTime.now(moscowZone);
+
+        Duration duration = Duration.between(postTime, now);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm | dd.MM.yyyy");
+        String fullDateTime = postTime.format(formatter);
+
+        String timeAgo;
+        if (duration.toDays() > 0) {
+            timeAgo = duration.toDays() + " " + pluralize(duration.toDays(), "день", "дня", "дней");
+        } else if (duration.toHours() > 0) {
+            timeAgo = duration.toHours() + " " + pluralize(duration.toHours(), "час", "часа", "часов");
+        } else if (duration.toMinutes() > 0) {
+            timeAgo = duration.toMinutes() + " " + pluralize(duration.toMinutes(), "минуту", "минуты", "минут");
+        } else {
+            timeAgo = duration.getSeconds() + " " + pluralize(duration.getSeconds(), "секунду", "секунды", "секунд");
+        }
+
         return String.format(
-                "🔍 Детали поста:\n\n" +
-                        "Тип: %s%s\n" +
-                        "Дата: %s\n" +
-                        "Расстояние: %s\n" +
-                        "Комментарий: %s\n\n" +
-                        "Координаты: %.6f, %.6f",
+                "\uD83D\uDD0D <b>Информация поста:</b>\n\n" +
+                        "<b>Тип:</b> %s%s\n" +
+                        "<b>Дата:</b> %s (%s назад) по МСК\n" +
+                        "<b>Расстояние:</b> %.3s км\n" +
+                        "<b>Комментарий:</b> %s\n\n" +
+                        "<b>Координаты:</b> %.6f, %.6f",
                 post.postType,
                 post.expired ? " (Неактуален)" : "",
-                post.registrationTime.toLocalDateTime(),
+                fullDateTime,
+                timeAgo,
                 post.distance,
-                post.comment,
+                post.comment.isEmpty() ? "Отсутствует" : post.comment,
                 post.latitude,
                 post.longitude
         );
+    }
+
+    private String pluralize(long number, String one, String few, String many) {
+        if (number % 10 == 1 && number % 100 != 11) {
+            return one;
+        }
+        if (number % 10 >= 2 && number % 10 <= 4 && (number % 100 < 10 || number % 100 >= 20)) {
+            return few;
+        }
+        return many;
     }
 
     /**
@@ -279,11 +318,13 @@ public class GetPostCommand implements Command {
                 editMessage.setMessageId(lastMessageId);
                 editMessage.setText(text);
                 editMessage.setReplyMarkup(keyboard);
+                editMessage.enableHtml(true);
                 TelegramBot.getInstance().execute(editMessage);
             } else {
                 SendMessage message = new SendMessage();
                 message.setChatId(String.valueOf(chatId));
                 message.setText(text);
+                message.enableHtml(true);
                 message.setReplyMarkup(keyboard);
                 Message sentMessage = TelegramBot.getInstance().execute(message);
                 lastMessageId = sentMessage.getMessageId();
@@ -390,15 +431,17 @@ public class GetPostCommand implements Command {
             if (lastMessageId == null) {
                 SendMessage message = new SendMessage();
                 message.setChatId(String.valueOf(chatId));
-                message.setText("Ближайшие посты ДПС:");
+                message.setText("\uD83D\uDE94 Ближайшие посты ДПС:");
                 message.setReplyMarkup(keyboard);
+                message.enableHtml(true);
                 Message sentMessage = TelegramBot.getInstance().execute(message);
                 lastMessageId = sentMessage.getMessageId();
             } else {
                 EditMessageText editMessage = new EditMessageText();
                 editMessage.setChatId(String.valueOf(chatId));
                 editMessage.setMessageId(lastMessageId);
-                editMessage.setText("Ближайшие посты ДПС:");
+                editMessage.setText("\uD83D\uDE94 Ближайшие посты ДПС:");
+                editMessage.enableHtml(true);
                 editMessage.setReplyMarkup(keyboard);
                 TelegramBot.getInstance().execute(editMessage);
             }
@@ -528,21 +571,43 @@ public class GetPostCommand implements Command {
      * Метод отправки фотографии карты с точками постов
      * @param update
      */
-    public void handleSendMap(Update update) throws SQLException {
+    public void handleSendMap(Update update) {
         UserState userState = getUserState(update.getCallbackQuery().getFrom().getId());
         UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getCallbackQuery().getFrom().getId());
 
-        if (userInfo.subscribe.equals("vip") && userInfo.genMap >= 3){
-            return;
-        }
-        if (userInfo.subscribe.equals("premium") && userInfo.genMap >= 10){
-            return;
+        if (userInfo.subscribe.equals("vip")){
+            if (!(userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP"))){
+                TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+                return;
+            }
+        } else if (userInfo.subscribe.equals("premium")){
+            if (!(userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM"))) {
+                TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+                return;
+            }
+        } else if (userInfo.subscribe.equals("none")) {
+            if (!(userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_NONE"))){
+                TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+                return;
+            }
         }
 
-        List<PolicePost> posts = getNearbyPosts(
-                userState.userLocation.getLatitude(),
-                userState.userLocation.getLongitude()
-        );
+        List<PolicePost> posts = null;
+        try {
+            posts = getNearbyPosts(
+                    userState.userLocation.getLatitude(),
+                    userState.userLocation.getLongitude()
+            );
+        } catch (SQLException e) {
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
         YandexMapsMarkers yandexMapsMarkers = new YandexMapsMarkers();
 
@@ -567,6 +632,8 @@ public class GetPostCommand implements Command {
                     YandexMapTheme.valueOf(userInfo.yandexTheme),
                     YandexMapTypes.valueOf(userInfo.yandexMaptype));
         } catch (IOException e) {
+            TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
             LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -579,7 +646,15 @@ public class GetPostCommand implements Command {
         try {
             Message msg = TelegramBot.getInstance().execute(sendPhoto);
             if (msg != null){
-                TelegramBot.getDatabaseManager().incrementGenMap(update.getCallbackQuery().getFrom().getId());
+                try {
+                    TelegramBot.getDatabaseManager().incrementGenMap(update.getCallbackQuery().getFrom().getId());
+                } catch (SQLException e) {
+                    TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
+                    TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
+                    LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
             }
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
@@ -597,9 +672,25 @@ public class GetPostCommand implements Command {
      */
     private void requestLocation(long chatId) {
         try {
+
+
+
             SendMessage message = new SendMessage();
             message.setChatId(String.valueOf(chatId));
-            message.setText("📍 Отправьте ваше местоположение для поиска ближайших постов:");
+            message.setText("📍 Отправьте вашу геопозицию для поиска ближайших постов:");
+
+            ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+            keyboardMarkup.setResizeKeyboard(true);
+            keyboardMarkup.setOneTimeKeyboard(true);
+
+            KeyboardRow row = new KeyboardRow();
+            KeyboardButton locationButton = new KeyboardButton("Отправить местоположение");
+            locationButton.setRequestLocation(true);
+            row.add(locationButton);
+
+            keyboardMarkup.setKeyboard(List.of(row));
+            message.setReplyMarkup(keyboardMarkup);
+
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");

@@ -1,9 +1,8 @@
-package org.marensovich.Bot.CallbackManager.CallBacks;
+package org.marensovich.Bot.CallbackManager.CallBacks.Reg;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CallbackManager.TelegramCallbackHandler;
 import org.marensovich.Bot.CommandsManager.Commands.RegisterCommand;
-import org.marensovich.Bot.CommandsManager.Commands.SettingsCommand;
 import org.marensovich.Bot.TelegramBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -19,36 +18,44 @@ public class CheckSubscriptionHandler implements TelegramCallbackHandler {
 
     @Override
     public void handle(Update update) {
-        String channelId = Dotenv.load().get("TELEGRAM_CHANNEL_NEWS_ID");
+        String[] CHANNEL_IDS = Dotenv.load().get("TELEGRAM_REQUIRED_SUB_CHANNELS").split(",\\s*");
         Long userId = update.getCallbackQuery().getFrom().getId();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
 
         try {
-            GetChatMember getChatMember = new GetChatMember();
-            getChatMember.setChatId(channelId);
-            getChatMember.setUserId(userId);
+            boolean isSubscribedToAll = true;
+            for (String channelId : CHANNEL_IDS) {
+                GetChatMember getChatMember = new GetChatMember();
+                getChatMember.setChatId(channelId.trim());
+                getChatMember.setUserId(userId);
+                ChatMember userMember = TelegramBot.getInstance().execute(getChatMember);
 
-            ChatMember userMember = TelegramBot.getInstance().execute(getChatMember);
+                if (!isMember(userMember.getStatus())) {
+                    isSubscribedToAll = false;
+                    break;
+                }
+            }
 
             SendMessage response = new SendMessage();
             response.setChatId(chatId.toString());
 
-            if (isMember(userMember.getStatus())) {
+            if (isSubscribedToAll) {
                 response.setText("✅ Спасибо за подписку! Теперь вы можете пользоваться ботом.");
+
+                RegisterCommand command = (RegisterCommand) TelegramBot.getInstance()
+                        .getCommandManager()
+                        .getActiveCommand(userId);
+
+                if (command != null) {
+                    command.registerUser(userId, chatId);
+                }
             } else {
-                response.setText("❌ Вы еще не подписаны на канал. Пожалуйста, подпишитесь и попробуйте снова.");
+                response.setText("❌ Вы еще не подписаны на все необходимые каналы. Пожалуйста, подпишитесь и попробуйте снова.");
             }
 
             TelegramBot.getInstance().execute(response);
-
-            RegisterCommand command = (RegisterCommand) TelegramBot.getInstance()
-                    .getCommandManager()
-                    .getActiveCommand(userId);
-
-            if (command != null) {
-                command.registerUser(userId, chatId);
-            }
         } catch (TelegramApiException e) {
+            TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             e.printStackTrace();
         }
     }

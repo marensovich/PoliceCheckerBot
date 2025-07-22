@@ -41,7 +41,6 @@ public class CommandManager {
     private void registerCommands() {
         register(new StartCommand());
         register(new HelpCommand());
-        register(new TestCommand());
         register(new SettingsCommand());
         register(new RegisterCommand());
         register(new SubscribeCommand());
@@ -157,7 +156,7 @@ public class CommandManager {
 
             if (!isRegistered && !isAllowedUnauthorizedCommand(commandKey)) {
                 sendMessage(update.getMessage().getChatId(),
-                        "Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
+                        "\uD83D\uDCE8 Пожалуйста, зарегистрируйтесь для использования этой команды. Используйте /reg для регистрации.");
                 return true;
             }
 

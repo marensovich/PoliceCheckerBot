@@ -177,7 +177,7 @@ public class AddPostCommand implements Command {
 
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
-        message.setText("Выберите тип поста:");
+        message.setText("\uD83D\uDDC2\uFE0F Выберите тип поста:");
         message.setReplyMarkup(getPostTypeKeyboard());
         try {
             TelegramBot.getInstance().execute(message);
@@ -193,7 +193,7 @@ public class AddPostCommand implements Command {
     private void requestComment(Long chatId){
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
-        message.setText("Пожалуйста, введите комментарий к посту:");
+        message.setText("✍\uFE0F Пожалуйста, введите комментарий к посту (необязательно):");
         message.setReplyMarkup(getSkipCommentKeyboard());
         try {
             TelegramBot.getInstance().execute(message);
@@ -210,6 +210,7 @@ public class AddPostCommand implements Command {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(getConfirmationMessage(userState));
+        message.enableHtml(true);
         message.setReplyMarkup(getConfirmationKeyboard());
         try {
             TelegramBot.getInstance().execute(message);
@@ -225,7 +226,7 @@ public class AddPostCommand implements Command {
     private void requestLocation(Long chatId){
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
-        message.setText("Отметьте точку на карте, где расположены сотрудники ДПС используя геолокацию:");
+        message.setText("\uD83D\uDCCDОтметьте точку на карте, где расположены сотрудники ДПС используя геолокацию:");
 
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
@@ -274,7 +275,7 @@ public class AddPostCommand implements Command {
                 .keyboard(List.of(
                         List.of(
                                 InlineKeyboardButton.builder()
-                                        .text("Пропустить комментарий")
+                                        .text("Пропустить")
                                         .callbackData(CALLBACK_NO_COMMENT)
                                         .build()
                         )
@@ -313,11 +314,11 @@ public class AddPostCommand implements Command {
                 userState.comment : "Комментарий отсутствует";
 
         return String.format(
-                "Подтвердите создание поста:\n\n" +
-                        "Тип: %s\n" +
-                        "Координаты: %.6f, %.6f\n" +
-                        "Комментарий: %s\n\n" +
-                        "Все верно?",
+                "\uD83D\uDEC2 <b>Подтвердите создание поста:</b>\n\n" +
+                        "<b>Тип:</b> %s\n" +
+                        "<b>Координаты:</b> %.6f, %.6f\n" +
+                        "<b>Комментарий:</b> %s\n\n" +
+                        "<b>Все верно?</b>",
                 userState.postType,
                 userState.postLocation.getLatitude(),
                 userState.postLocation.getLongitude(),
@@ -337,7 +338,8 @@ public class AddPostCommand implements Command {
     private void sendSuccessMessage(Long chatId){
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
-        message.setText("✅ Пост успешно создан!");
+        message.setText("<b>✅ Пост успешно создан!</b>");
+        message.enableHtml(true);
         try {
             TelegramBot.getInstance().execute(message);
         } catch (TelegramApiException e) {

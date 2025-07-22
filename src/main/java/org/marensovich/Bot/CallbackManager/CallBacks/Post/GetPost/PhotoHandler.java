@@ -22,11 +22,7 @@ public class PhotoHandler implements TelegramCallbackHandler {
                 .getActiveCommand(userId);
 
         if (command != null) {
-            try {
-                command.handleSendMap(update);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            command.handleSendMap(update);
         }
     }
 }
