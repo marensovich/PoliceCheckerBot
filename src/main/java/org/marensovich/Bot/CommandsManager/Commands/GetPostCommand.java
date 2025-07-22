@@ -23,7 +23,9 @@ import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -433,6 +435,7 @@ public class GetPostCommand implements Command {
                 message.setChatId(String.valueOf(chatId));
                 message.setText("\uD83D\uDE94 Ближайшие посты ДПС:");
                 message.setReplyMarkup(keyboard);
+                message.setReplyMarkup(TelegramBot.getInstance().removeKeyboard());
                 message.enableHtml(true);
                 Message sentMessage = TelegramBot.getInstance().execute(message);
                 lastMessageId = sentMessage.getMessageId();
@@ -559,6 +562,7 @@ public class GetPostCommand implements Command {
             message.setChatId(String.valueOf(chatId));
             message.setText("🚫 В радиусе 10 км посты не обнаружены");
             TelegramBot.getInstance().execute(message);
+            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
