@@ -544,6 +544,7 @@ public class GetPostCommand implements Command {
      * Обработка события при котором ни один пост в радиусе 10 км не был найден
      * @param chatId
      */
+    // TODO: У пользователей ошибки DeleteMessage query: [400] Bad Request: message to delete not found
     private void sendNoPostsMessage(long chatId) {
         try {
             if (lastMessageId != null) {

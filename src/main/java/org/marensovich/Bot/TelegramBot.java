@@ -78,4 +78,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    public String escapeMarkdownV2(String text) {
+        String[] specialChars = {"_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!"};
+
+        for (String ch : specialChars) {
+            text = text.replace(ch, "\\" + ch);
+        }
+        return text;
+    }
+
 }
