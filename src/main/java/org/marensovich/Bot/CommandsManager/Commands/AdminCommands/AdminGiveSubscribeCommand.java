@@ -3,6 +3,7 @@ package org.marensovich.Bot.CommandsManager.Commands.AdminCommands;
 import org.jetbrains.annotations.NotNull;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.Data.SubscribeTypes;
+import org.marensovich.Bot.Data.UserInfo;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
 import org.marensovich.Bot.Utils.LoggerUtil;
@@ -110,7 +111,14 @@ public class AdminGiveSubscribeCommand implements Command {
         }
 
         DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
-        databaseManager.addSub(target_id, subscribeType);
+        UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getMessage().getFrom().getId());
+        if (!userInfo.subscribe.equals("none")){
+            databaseManager.addSub(target_id, subscribeType);
+        } else {
+            databaseManager.resetSub(update.getMessage().getFrom().getId());
+            databaseManager.addSub(target_id, subscribeType);
+        }
+
 
         Timestamp expAt = databaseManager.getExpAtForUser(target_id);
         String formattedDate = "";
