@@ -24,7 +24,6 @@ public class RegisterCommand implements Command {
 
     private static Map<String, String> initChannels() {
         Map<String, String> channels = new LinkedHashMap<>();
-
         String[] ids = Dotenv.load().get("TELEGRAM_REQUIRED_SUB_CHANNELS").split(",\\s*");
         String[] links = Dotenv.load().get("TELEGRAM_REQUIRED_SUB_CHANNELS_LINK").split(",\\s*");
 
@@ -32,7 +31,11 @@ public class RegisterCommand implements Command {
             throw new IllegalStateException("Количество ID каналов и ссылок не совпадает");
         }
 
+        Set<String> uniqueLinks = new HashSet<>();
         for (int i = 0; i < ids.length; i++) {
+            if (!uniqueLinks.add(links[i].trim())) {
+                throw new IllegalStateException("Обнаружены дублирующиеся ссылки: " + links[i]);
+            }
             channels.put(ids[i].trim(), links[i].trim());
         }
 
