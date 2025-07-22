@@ -97,6 +97,7 @@ public class UserInfoCommand implements Command {
         String message = String.format(
                           """
                         <b>📋 Информация о пользователе:</b>
+                        
                         <b> 🆔 ID: </b>%s
                         <b> 🌐 Язык: </b>%s
                         <b> 🎨 Тема: </b>%s

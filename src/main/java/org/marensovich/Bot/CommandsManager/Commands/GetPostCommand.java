@@ -576,19 +576,19 @@ public class GetPostCommand implements Command {
         UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getCallbackQuery().getFrom().getId());
 
         if (userInfo.subscribe.equals("vip")){
-            if (!(userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP"))){
+            if (userInfo.genMap >= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_VIP")){
                 TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
                 return;
             }
         } else if (userInfo.subscribe.equals("premium")){
-            if (!(userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM"))) {
+            if (userInfo.genMap >= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_PREMIUM")) {
                 TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
                 return;
             }
         } else if (userInfo.subscribe.equals("none")) {
-            if (!(userInfo.genMap <= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_NONE"))){
+            if (userInfo.genMap >= TelegramBot.getDatabaseManager().getIntValueBotData("limit_map_generation_NONE")){
                 TelegramBot.getInstance().sendErrorMessage(update.getCallbackQuery().getFrom().getId(), "\uD83D\uDEAB Лимит создания карт для вашей подписки исчерпан. \nПодробнее в /userinfo");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getCallbackQuery().getFrom().getId());
                 return;
@@ -612,9 +612,13 @@ public class GetPostCommand implements Command {
         YandexMapsMarkers yandexMapsMarkers = new YandexMapsMarkers();
 
         for (PolicePost post : posts) {
-            yandexMapsMarkers.addMarker(post.longitude, post.latitude, MarkerStyle.PM2, MarkerColor.RED, MarkerSize.LARGE);
+            if (post.postType.equals("Пост ДПС")){
+                yandexMapsMarkers.addMarker(post.longitude, post.latitude, MarkerStyle.PM2, MarkerColor.RED, MarkerSize.MEDIUM);
+            } else if (post.postType.equals("Патрульная машина")){
+                yandexMapsMarkers.addMarker(post.longitude, post.latitude, MarkerStyle.PM2, MarkerColor.YELLOW, MarkerSize.MEDIUM);
+            }
         }
-        yandexMapsMarkers.addMarker(userState.userLocation.getLongitude(), userState.userLocation.getLatitude(), MarkerStyle.PM2, MarkerColor.BLUE, MarkerSize.LARGE);
+        yandexMapsMarkers.addSpecialMarker(userState.userLocation.getLongitude(), userState.userLocation.getLatitude(), MarkerStyle.ROUND);
 
         InputStream is = null;
         try {
@@ -641,6 +645,11 @@ public class GetPostCommand implements Command {
 
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(update.getCallbackQuery().getFrom().getId());
+        sendPhoto.setCaption("""
+                🔵 - Вы
+                🔴 - Пост ДПС
+                🟡 - Патрульная машина
+                """);
         sendPhoto.setPhoto(new InputFile(is, "map.png"));
 
         try {
