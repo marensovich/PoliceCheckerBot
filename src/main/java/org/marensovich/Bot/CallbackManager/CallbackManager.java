@@ -8,6 +8,7 @@ import org.marensovich.Bot.CallbackManager.CallBacks.Post.GetPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Lang.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Maptype.*;
+import org.marensovich.Bot.CallbackManager.CallBacks.Settings.QuitHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeDarkHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeLightHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.Settings.Theme.ThemeMenuHandler;
@@ -52,6 +53,7 @@ public class CallbackManager {
         register(new PostDPSHandler());
         register(new PostPatrolHandler());
         register(new NoCommentHandler());
+        register(new org.marensovich.Bot.CallbackManager.CallBacks.Post.GetPost.QuitHandler());
 
         // Обработчики команды /settings
         register(new BackHandler());
