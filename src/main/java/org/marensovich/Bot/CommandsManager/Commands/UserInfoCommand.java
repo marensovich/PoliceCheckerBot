@@ -10,6 +10,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class UserInfoCommand implements Command {
@@ -86,6 +90,10 @@ public class UserInfoCommand implements Command {
             limitgenmap = "Недоступно";
         }
 
+        ZoneId moscowZone = ZoneId.of("Europe/Moscow");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm | dd.MM.yyyy")
+                .withZone(moscowZone);
+
         String message = String.format(
                           """
                         <b>📋 Информация о пользователе:</b>
@@ -118,9 +126,14 @@ public class UserInfoCommand implements Command {
                         .findFirst()
                         .map(SubscribeOption::displayName)
                         .orElse(userData.getSubscribe()),
-                (userData.getSubscriptionExpiration() != null) ? userData.getSubscriptionExpiration().toString() : "Нет",
+                (userData.getSubscriptionExpiration() != null)
+                        ? userData.getSubscriptionExpiration().toLocalDateTime().format(formatter) +
+                        formatTimeRemaining(userData.getSubscriptionExpiration().toLocalDateTime())
+                        : "Нет",
                 limitgenmap,
-                userData.getRegistrationTime().toString()
+                userData.getRegistrationTime().toInstant()
+                        .atZone(moscowZone)
+                        .format(formatter)
         );
 
         SendMessage sendMessage = new SendMessage();
@@ -138,4 +151,38 @@ public class UserInfoCommand implements Command {
         }
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(userId);
     }
+
+
+    private String formatTimeRemaining(LocalDateTime expirationDate) {
+        Duration remaining = Duration.between(LocalDateTime.now(), expirationDate);
+        long days = remaining.toDays();
+        long hours = remaining.toHours() % 24;
+
+        if (days > 0 && hours > 0) {
+            return String.format(" (через %d %s и %d %s)",
+                    days, pluralizeDays(days),
+                    hours, pluralizeHours(hours));
+        } else if (days > 0) {
+            return String.format(" (через %d %s)",
+                    days, pluralizeDays(days));
+        } else if (hours > 0) {
+            return String.format(" (через %d %s)",
+                    hours, pluralizeHours(hours));
+        } else {
+            return " (истекает сегодня)";
+        }
+    }
+
+    private String pluralizeDays(long days) {
+        if (days % 10 == 1 && days % 100 != 11) return "день";
+        if (days % 10 >= 2 && days % 10 <= 4 && (days % 100 < 10 || days % 100 >= 20)) return "дня";
+        return "дней";
+    }
+
+    private String pluralizeHours(long hours) {
+        if (hours % 10 == 1 && hours % 100 != 11) return "час";
+        if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) return "часа";
+        return "часов";
+    }
+
 }

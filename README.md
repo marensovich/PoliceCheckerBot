@@ -1,4 +1,4 @@
-
+![Version](https://img.shields.io/badge/Bot%20Version-1.0-blue)
 ![GitHub repo size](https://img.shields.io/github/repo-size/marensovich/PoliceCheckerBot)
 ![GitHub watchers](https://img.shields.io/github/watchers/marensovich/PoliceCheckerBot)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/marensovich/PoliceCheckerBot/blob/main/LICENSE)
@@ -6,7 +6,7 @@
 # Описание проекта
 
 Этот бот предназначен для оставления записи о посте ДПС, а последствии и получения информации другим лицом о постах, находящимся рядом с ним. 
-Работа бот напрямую зависит от активности пользователей.
+Работа бота напрямую зависит от активности пользователей.
 
 ## Автор
 

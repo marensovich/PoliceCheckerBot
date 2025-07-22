@@ -1,6 +1,7 @@
 package org.marensovich.Bot.CallbackManager;
 
-import org.marensovich.Bot.CallbackManager.CallBacks.CheckSubscriptionHandler;
+import org.marensovich.Bot.CallbackManager.CallBacks.Help.HelpHandler;
+import org.marensovich.Bot.CallbackManager.CallBacks.Reg.CheckSubscriptionHandler;
 import org.marensovich.Bot.CallbackManager.CallBacks.News.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Post.AddPost.*;
 import org.marensovich.Bot.CallbackManager.CallBacks.Post.GetPost.*;
@@ -38,6 +39,10 @@ public class CallbackManager {
      * Регистрация callback
      */
     private void registerHandlers() {
+
+        //Обработчик команды /help
+        register(new HelpHandler());
+
         //Обработчик команды /reg
         register(new CheckSubscriptionHandler());
 

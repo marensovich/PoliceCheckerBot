@@ -1,5 +1,6 @@
 package org.marensovich.Bot.CommandsManager.Commands;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.TelegramBot;
 import org.marensovich.Bot.Utils.LoggerUtil;
@@ -21,9 +22,14 @@ public class StartCommand implements Command {
         sendMessage.setText("""
                 <b> Добро пожаловать. </b> 
                 
-                Данный бот направлен на сбор и информирование о постах ДПС. 
-                Эффективная работа и польза бота напрямую зависит от вас. С возможностями бота вы можете ознакомиться в /help
-                """);
+                Данный бот направлен на сбор и информирование о постах ДПС. Эффективная работа и польза бота напрямую зависит от вас. 
+                
+                Для ознакомления с возможностями бота вы можете использовать команду <b>/help</b>
+                
+                <b> Для регистрации введите /reg</b>
+                
+                Версия бота %version%
+                """.replace("%version%", Dotenv.load().get("BOT_VERSION")));
         sendMessage.enableHtml(true);
 
         try {

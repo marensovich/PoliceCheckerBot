@@ -129,9 +129,9 @@ public class SettingsCommand implements Command {
     private String getSettingsText(long userId) {
         getSettings(userId);
         return "Текущие настройки:\n\n" +
-                "Тема: " + currentDisplayTheme + "\n" +
+                "Тема карты: " + currentDisplayTheme + "\n" +
                 "Тип карты: " + currentDisplayMapType + "\n" +
-                "Язык: " + currentDisplayLang + "\n\n" +
+                "Язык карты: " + currentDisplayLang + "\n\n" +
                 "Выберите параметр для изменения:";
     }
 
@@ -237,7 +237,7 @@ public class SettingsCommand implements Command {
 
         markup.setKeyboard(rows);
 
-        editMessage.setText("Выберите тему:");
+        editMessage.setText("Выберите тему карты:");
         editMessage.setReplyMarkup(markup);
         try {
             TelegramBot.getInstance().execute(editMessage);
@@ -343,7 +343,7 @@ public class SettingsCommand implements Command {
 
         markup.setKeyboard(rows);
 
-        editMessage.setText("Выберите язык:");
+        editMessage.setText("Выберите язык карты:");
         editMessage.setReplyMarkup(markup);
         try {
             TelegramBot.getInstance().execute(editMessage);

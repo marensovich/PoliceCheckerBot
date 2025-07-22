@@ -41,7 +41,6 @@ public class CommandManager {
     private void registerCommands() {
         register(new StartCommand());
         register(new HelpCommand());
-        register(new TestCommand());
         register(new SettingsCommand());
         register(new RegisterCommand());
         register(new SubscribeCommand());

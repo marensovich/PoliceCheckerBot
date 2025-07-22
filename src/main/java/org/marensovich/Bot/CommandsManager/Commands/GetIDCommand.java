@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class GetIDCommand implements Command {
     @Override
     public String getName() {
-        return "/getID";
+        return "/getid";
     }
 
     @Override

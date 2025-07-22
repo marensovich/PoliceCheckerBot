@@ -76,11 +76,11 @@ public class UserInfo {
         this.genMap = genMap;
     }
 
-    public java.sql.Timestamp getRegistrationTime() {
+    public Timestamp getRegistrationTime() {
         return registrationTime;
     }
 
-    public void setRegistrationTime(java.sql.Timestamp registrationTime) {
+    public void setRegistrationTime(Timestamp registrationTime) {
         this.registrationTime = registrationTime;
     }
 
@@ -92,11 +92,11 @@ public class UserInfo {
         this.subscribeType = subscribeType;
     }
 
-    public java.sql.Timestamp getSubscriptionExpiration() {
+    public Timestamp getSubscriptionExpiration() {
         return subscriptionExpiration;
     }
 
-    public void setSubscriptionExpiration(java.sql.Timestamp subscriptionExpiration) {
+    public void setSubscriptionExpiration(Timestamp subscriptionExpiration) {
         this.subscriptionExpiration = subscriptionExpiration;
     }
 }
