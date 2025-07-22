@@ -9,6 +9,8 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.InputStream;
@@ -76,6 +78,22 @@ public class TelegramBot extends TelegramLongPollingBot {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    public String escapeMarkdownV2(String text) {
+        String[] specialChars = {"_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!"};
+
+        for (String ch : specialChars) {
+            text = text.replace(ch, "\\" + ch);
+        }
+        return text;
+    }
+
+    public ReplyKeyboardRemove removeKeyboard(){
+        ReplyKeyboardRemove keyboardRemove = new ReplyKeyboardRemove();
+        keyboardRemove.setRemoveKeyboard(true);
+        keyboardRemove.setSelective(false);
+        return keyboardRemove;
     }
 
 }
