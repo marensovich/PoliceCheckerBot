@@ -19,6 +19,7 @@ public class CancelCommand implements Command {
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
             SendMessage msg = new SendMessage();
             msg.setChatId(update.getMessage().getChatId().toString());
+            msg.setReplyMarkup(TelegramBot.getInstance().removeKeyboard());
             msg.setText("Активная команда была удалена.");
             try {
                 TelegramBot.getInstance().execute(msg);
