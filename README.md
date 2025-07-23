@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Bot%20Version-1.1-blue)
+![Version](https://img.shields.io/badge/Bot%20Version-1.1.1-blue)
 ![GitHub repo size](https://img.shields.io/github/repo-size/marensovich/PoliceCheckerBot)
 ![GitHub watchers](https://img.shields.io/github/watchers/marensovich/PoliceCheckerBot)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/marensovich/PoliceCheckerBot/blob/main/LICENSE)

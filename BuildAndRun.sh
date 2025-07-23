@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGE_NAME="police_checker_bot:1.1"
+IMAGE_NAME="police_checker_bot:1.1.1"
 CONTAINER_NAME="PoliceCheckerBot"
 
 docker build -t $IMAGE_NAME .

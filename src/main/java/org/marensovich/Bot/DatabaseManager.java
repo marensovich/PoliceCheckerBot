@@ -27,7 +27,6 @@ public class DatabaseManager {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             LoggerUtil.logError(DatabaseManager.class, "MySQL JDBC Driver не найден!");
-            e.printStackTrace();
             System.exit(1);
         }
     }
@@ -37,7 +36,7 @@ public class DatabaseManager {
             return conn.isValid(2);
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка подключения к БД: " + e.getMessage());
-e.printStackTrace();
+
             return false;
         }
     }
@@ -102,7 +101,7 @@ e.printStackTrace();
             LoggerUtil.logInfo(getClass(), "Таблицы All_Users, Users, BotData и Police успешно созданы или уже существовали");
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при создании таблицы: " + e.getMessage());
-e.printStackTrace();
+
             throw new RuntimeException("Не удалось создать таблицу", e);
         }
     }
@@ -117,7 +116,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при проверке пользователя: " + e.getMessage());
-e.printStackTrace();
+
             return false;
         }
     }
@@ -132,7 +131,7 @@ e.printStackTrace();
             LoggerUtil.logInfo(getClass(), "Пользователь " + userId + " успешно добавлен");
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при добавлении пользователя: " + e.getMessage());
-e.printStackTrace();
+
             throw new RuntimeException("Не удалось добавить пользователя", e);
         }
     }
@@ -149,7 +148,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при получении времени регистрации: " + e.getMessage());
-            e.printStackTrace();
+            
         }
         return null;
     }
@@ -164,8 +163,8 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при получении количества пользователей: " + e.getMessage());
-            e.printStackTrace();
-            e.printStackTrace();
+            
+            
         }
         return 0;
     }
@@ -180,8 +179,8 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при проверке пользователя: " + e.getMessage());
-            e.printStackTrace();
-            e.printStackTrace();
+            
+            
             return false;
         }
     }
@@ -195,8 +194,8 @@ e.printStackTrace();
             LoggerUtil.logInfo(getClass(), "Пользователь " + userId + " успешно добавлен");
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при добавлении пользователя: " + e.getMessage());
-            e.printStackTrace();
-            e.printStackTrace();
+            
+            
         }
     }
 
@@ -230,8 +229,8 @@ e.printStackTrace();
                 }
             }
         } catch (SQLException e) {
-            LoggerUtil.logError(getClass(), "Произошла ошибка при работе бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
+            
             return null;
         }
     }
@@ -250,7 +249,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при проверке статуса администратора: " + e.getMessage());
-            e.printStackTrace();
+            
             return false;
         }
     }
@@ -286,7 +285,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logInfo(getClass(), "Ошибка при выдаче подписки пользователю " + userid + ": " + e.getMessage());
-            e.printStackTrace();
+            
             throw new RuntimeException("Не удалось выдать подписку пользователю " + userid, e);
         }
     }
@@ -323,7 +322,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logInfo(getClass(), "Ошибка при сбросе подписки пользователю " + userid + ": " + e.getMessage());
-            e.printStackTrace();
+            
             throw new RuntimeException("Не удалось сбросить подписку пользователю " + userid, e);
         }
     }
@@ -339,7 +338,7 @@ e.printStackTrace();
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            
         }
         return null;
     }
@@ -356,7 +355,7 @@ e.printStackTrace();
             stmt.executeUpdate();
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Не удалось добавить пост" + e.getMessage());
-            e.printStackTrace();
+            
         }
     }
 
@@ -439,7 +438,7 @@ e.printStackTrace();
                 settings.put("yandex_maptype", resultSet.getString("yandex_maptype"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            
         }
         return settings;
     }
@@ -452,7 +451,7 @@ e.printStackTrace();
             stmt.setLong(2, userid);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            
         }
     }
 
@@ -466,7 +465,7 @@ e.printStackTrace();
             stmt.setLong(4, userId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            
         }
     }
 
@@ -482,7 +481,7 @@ e.printStackTrace();
                 userIds.add(resultSet.getLong("user_id"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            
             return new long[0];
         }
 
@@ -501,7 +500,7 @@ e.printStackTrace();
                 userIds.add(resultSet.getLong("user_id"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            
             return new long[0];
         }
 
@@ -528,7 +527,7 @@ e.printStackTrace();
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            
             return new long[0];
         }
 
@@ -576,7 +575,7 @@ e.printStackTrace();
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            
         }
         return result;
     }
@@ -662,7 +661,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при получении строкового значения: " + e.getMessage());
-e.printStackTrace();
+
         }
         return null;
     }
@@ -678,7 +677,7 @@ e.printStackTrace();
             }
         } catch (SQLException | NumberFormatException e) {
             LoggerUtil.logError(getClass(), "Ошибка при получении числового значения: " + e.getMessage());
-e.printStackTrace();
+
         }
         return null;
     }
@@ -694,7 +693,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при получении boolean значения: " + e.getMessage());
-e.printStackTrace();
+
         }
         return null;
     }
@@ -709,7 +708,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при проверке существования ключа: " + e.getMessage());
-e.printStackTrace();
+
         }
         return false;
     }
@@ -731,7 +730,7 @@ e.printStackTrace();
             }
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при получении полной записи: " + e.getMessage());
-e.printStackTrace();
+
         }
         return null;
     }
@@ -747,7 +746,7 @@ e.printStackTrace();
 
         } catch (SQLException e) {
             LoggerUtil.logError(getClass(), "Ошибка при сбросе gen_map: " + e.getMessage());
-e.printStackTrace();
+
         }
     }
 
