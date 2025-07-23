@@ -580,22 +580,33 @@ public class GetPostCommand implements Command {
      * @param chatId
      */
     private void sendNoPostsMessage(long chatId) {
-        try {
-            if (lastMessageId != null) {
-                DeleteMessage deleteMessage = new DeleteMessage();
-                deleteMessage.setChatId(String.valueOf(chatId));
-                deleteMessage.setMessageId(lastMessageId);
+
+        if (lastMessageId != null) {
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(String.valueOf(chatId));
+            deleteMessage.setMessageId(lastMessageId);
+            try {
                 TelegramBot.getInstance().execute(deleteMessage);
                 lastMessageId = null;
+            } catch (TelegramApiException e) {
+                //TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
+                cleanupUserState(chatId);
+                TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+                throw new RuntimeException(e);
             }
+        }
 
-            SendMessage message = new SendMessage();
-            message.setChatId(String.valueOf(chatId));
-            message.setText("🚫 В радиусе 10 км посты не обнаружены");
-            message.setReplyMarkup(TelegramBot.getInstance().removeKeyboard());
+        SendMessage message = new SendMessage();
+        message.setChatId(String.valueOf(chatId));
+        message.setText("🚫 В радиусе 10 км посты не обнаружены");
+        message.setReplyMarkup(TelegramBot.getInstance().removeKeyboard());
+
+        TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
+        cleanupUserState(chatId);
+
+        try {
             TelegramBot.getInstance().execute(message);
-            TelegramBot.getInstance().getCommandManager().unsetActiveCommand(chatId);
-            cleanupUserState(chatId);
         } catch (TelegramApiException e) {
             TelegramBot.getInstance().sendErrorMessage(chatId, "⚠️ Ошибка при работе бота, обратитесь к администратору");
             cleanupUserState(chatId);
