@@ -3,6 +3,7 @@ package org.marensovich.Bot.CommandsManager.Commands.AdminCommands;
 import org.jetbrains.annotations.NotNull;
 import org.marensovich.Bot.CommandsManager.Command;
 import org.marensovich.Bot.Data.SubscribeTypes;
+import org.marensovich.Bot.Data.UserInfo;
 import org.marensovich.Bot.DatabaseManager;
 import org.marensovich.Bot.TelegramBot;
 import org.marensovich.Bot.Utils.LoggerUtil;
@@ -36,8 +37,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException e) {
                 TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
-                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                e.printStackTrace();
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
                 throw new RuntimeException(e);
             }
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
@@ -54,8 +54,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException e){
                 TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
-                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                e.printStackTrace();
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
                 throw new RuntimeException(e);
             }
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
@@ -66,8 +65,8 @@ public class AdminGiveSubscribeCommand implements Command {
         try {
             target_id = Long.parseLong(parts[1]);
         } catch (NumberFormatException e) {
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+            
             SendMessage message = new SendMessage();
             message.setChatId(update.getMessage().getFrom().getId());
             message.setText("ID пользователя должен быть числом. Пожалуйста, проверьте ввод.");
@@ -77,8 +76,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
-                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                e.printStackTrace();
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
                 throw new RuntimeException(ex);
             }
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
@@ -90,8 +88,8 @@ public class AdminGiveSubscribeCommand implements Command {
         try {
             subscribeType = SubscribeTypes.fromString(subscribeTypeStr);
         } catch (IllegalArgumentException e) {
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
+            
             SendMessage message = new SendMessage();
             message.setChatId(update.getMessage().getFrom().getId());
             message.setText("Некорректный тип подписки. Пожалуйста, используйте допустимые значения.");
@@ -101,8 +99,7 @@ public class AdminGiveSubscribeCommand implements Command {
             } catch (TelegramApiException ex) {
                 TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
                 TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
-                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-                e.printStackTrace();
+                LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
                 throw new RuntimeException(ex);
             }
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
@@ -110,7 +107,14 @@ public class AdminGiveSubscribeCommand implements Command {
         }
 
         DatabaseManager databaseManager = TelegramBot.getDatabaseManager();
-        databaseManager.addSub(target_id, subscribeType);
+        UserInfo userInfo = TelegramBot.getDatabaseManager().getUserInfo(update.getMessage().getFrom().getId());
+        if (!userInfo.subscribe.equals("none")){
+            databaseManager.addSub(target_id, subscribeType);
+        } else {
+            databaseManager.resetSub(update.getMessage().getFrom().getId());
+            databaseManager.addSub(target_id, subscribeType);
+        }
+
 
         Timestamp expAt = databaseManager.getExpAtForUser(target_id);
         String formattedDate = "";
@@ -129,8 +133,7 @@ public class AdminGiveSubscribeCommand implements Command {
         } catch (TelegramApiException e){
             TelegramBot.getInstance().sendErrorMessage(update.getMessage().getFrom().getId(), "⚠️ Ошибка при работе бота, обратитесь к администратору");
             TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
-            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.logError(getClass(), "Произошла ошибка во время работы бота: " + e);
             throw new RuntimeException(e);
         }
         TelegramBot.getInstance().getCommandManager().unsetActiveCommand(update.getMessage().getFrom().getId());
