@@ -9,6 +9,10 @@ import java.util.regex.Pattern;
 
 public class ChangelogParser {
 
+    static {
+        LoggerUtil.logInfo(LoggerUtil.class, "ChangelogParser initialized");
+    }
+
     private static final String GET_CHANGELOG_URL =
             "https://raw.githubusercontent.com/marensovich/PoliceCheckerBot/main/CHANGELOG.md";
 
@@ -34,16 +38,24 @@ public class ChangelogParser {
     }
 
     public static String getChangesForVersion(String fullChangelog, String version) {
+        String cleanVersion = version.replaceAll("[^\\d.]", "");
+
+        if (cleanVersion.isEmpty() || !cleanVersion.matches("\\d+(?:\\.\\d+)*")) {
+            return "Неверный формат версии: " + version;
+        }
+
+        String versionPattern = Pattern.quote(cleanVersion);
         String regex = String.format(
-                "(## \\[v\\.%s\\][\\s\\S]+?)(?=## \\[v\\.\\d+\\.\\d+\\.\\d+\\]|\\z)",
-                Pattern.quote(version)
+                "(^## \\[v\\.%s\\] - \\d{2}\\.\\d{2}\\.\\d{4}$[\\s\\S]+?)(?=^## \\[v\\.|\\z)",
+                versionPattern
         );
-        Pattern pattern = Pattern.compile(regex);
+
+        Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(fullChangelog);
 
         if (matcher.find()) {
             return matcher.group(1).trim();
         }
-        return "Информация для версии v." + version + " не найдена.";
+        return "Изменения для версии v." + cleanVersion + " не найдены.";
     }
 }
